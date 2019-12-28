@@ -1,7 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"github.com/muniere/glean/internal/app/client"
+	"github.com/muniere/glean/internal/pkg/sys"
+)
 
 func main() {
-	fmt.Println("Hello, glean!")
+	cmd := client.NewCommand()
+	err := cmd.Execute()
+	sys.CheckError(err)
 }

@@ -2,12 +2,12 @@ all: gleand glean
 
 gleand: .bin/gleand
 
-.bin/gleand: $(shell find ./cmd/server -type f -name '*.go')
+.bin/gleand: $(shell find ./cmd/server ./internal/app/server ./internal/pkg -type f -name '*.go')
 	go build -o .bin/gleand ./cmd/server
 
 glean: .bin/glean
 
-.bin/glean: $(shell find ./cmd/client -type f -name '*.go')
+.bin/glean: $(shell find ./cmd/client ./internal/app/client ./internal/pkg -type f -name '*.go')
 	go build -o .bin/glean ./cmd/client
 
 .PHONY: deps

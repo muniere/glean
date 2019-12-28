@@ -1,7 +1,16 @@
 package main
 
-import "fmt"
+import (
+	"log"
+
+	"github.com/muniere/glean/internal/app/server"
+)
 
 func main() {
-	fmt.Println("Hello, gleand!")
+	srv := server.New("0.0.0.0", 2718)
+	err := srv.Start()
+
+	if err != nil {
+		log.Fatal(err)
+	}
 }
