@@ -1,3 +1,4 @@
 package task
 
-const Concurrency = 3
+const Parallel = 3
+const Concurrency = 10

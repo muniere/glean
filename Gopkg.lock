@@ -43,11 +43,59 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:fcad7cd3276afdd1f069c25887ef7ddba9d773145d0f17831e005a0d904c3579"
+  name = "golang.org/x/net"
+  packages = [
+    "html",
+    "html/atom",
+    "html/charset",
+  ]
+  pruneopts = "UT"
+  revision = "c0dbc17a35534bf2e581d7a942408dc936316da4"
+
+[[projects]]
+  branch = "master"
   digest = "1:21fdc4d02e91b37ce39866d3a949a4b54220f3acb839ccb0b3ae0497df638903"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
   revision = "04cbcbbfeed8aa0b2b010b2ddab558e9f717fd3e"
+
+[[projects]]
+  digest = "1:8a0baffd5559acaa560f854d7d525c02f4fec2d4f8a214398556fb661a10f6e0"
+  name = "golang.org/x/text"
+  packages = [
+    "encoding",
+    "encoding/charmap",
+    "encoding/htmlindex",
+    "encoding/internal",
+    "encoding/internal/identifier",
+    "encoding/japanese",
+    "encoding/korean",
+    "encoding/simplifiedchinese",
+    "encoding/traditionalchinese",
+    "encoding/unicode",
+    "internal/gen",
+    "internal/language",
+    "internal/language/compact",
+    "internal/tag",
+    "internal/utf8internal",
+    "language",
+    "runes",
+    "transform",
+    "unicode/cldr",
+  ]
+  pruneopts = "UT"
+  revision = "342b2e1fbaa52c93f31447ad2c6abc048c63e475"
+  version = "v0.3.2"
+
+[[projects]]
+  branch = "v2"
+  digest = "1:c78e25c1cf10b1d9d1dd866f3f246f239b66d4648a16e3da1c098444e288c0e9"
+  name = "gopkg.in/xmlpath.v2"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "860cbeca3ebcc600db0b213c0e83ad6ce91f5739"
 
 [solve-meta]
   analyzer-name = "dep"
@@ -56,6 +104,8 @@
     "github.com/sirupsen/logrus",
     "github.com/spf13/cobra",
     "github.com/spf13/pflag",
+    "golang.org/x/net/html/charset",
+    "gopkg.in/xmlpath.v2",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

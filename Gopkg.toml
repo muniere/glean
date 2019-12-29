@@ -6,6 +6,12 @@
   name = "github.com/sirupsen/logrus"
   version = "1.4.2"
 
+[[constraint]]
+  name = "gopkg.in/xmlpath.v2"
+
+[[constraint]]
+  name = "golang.org/x/net"
+
 [prune]
   go-tests = true
   unused-packages = true

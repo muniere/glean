@@ -59,7 +59,11 @@ func launch(ctx *context) error {
 	queue := task.NewQueue()
 
 	consumer := pubsub.NewConsumer(queue, pubsub.ConsumerConfig{
+		Parallel:    ctx.options.parallel,
 		Concurrency: ctx.options.concurrency,
+		Prefix:      ctx.options.prefix,
+		Overwrite:   ctx.options.overwrite,
+		DryRun:      ctx.options.dryRun,
 	})
 
 	producer := pubsub.NewProducer(queue, pubsub.ProducerConfig{
