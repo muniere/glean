@@ -1,4 +1,4 @@
-package server
+package pubsub
 
 import (
 	"encoding/json"

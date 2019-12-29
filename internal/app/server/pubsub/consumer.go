@@ -1,8 +1,10 @@
-package server
+package pubsub
 
 import (
-	"fmt"
+	"encoding/json"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/muniere/glean/internal/pkg/task"
 )
@@ -34,13 +36,16 @@ func (m *Consumer) Spawn() {
 		m.queue,
 		func(job task.Job, meta task.Meta) error {
 			// TODO: Crawl with query
-			j, _ := job.Encode()
-			m, _ := meta.Encode()
-			fmt.Printf("job: %s, meta: %s\n", j, m)
+			m := map[string]interface{}{
+				"job":  job,
+				"meta": meta,
+			}
+			b, _ := json.Marshal(m)
+			log.Info(string(b))
 			return nil
 		},
 		func(err error) {
-			// TODO: Log error
+			log.Error(err)
 		},
 		5*time.Second,
 	)
