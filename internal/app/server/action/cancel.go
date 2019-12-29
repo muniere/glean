@@ -14,12 +14,12 @@ func Cancel(w *relay.Gateway, ctx *scope.Context) error {
 		return err
 	}
 
-	if err := ctx.Queue.Remove(payload.ID); err != nil {
-		f := box.Failure{
+	job, err := ctx.Queue.Remove(payload.ID)
+	if err != nil {
+		return w.Error(box.Failure{
 			Message: err.Error(),
-		}
-		return w.Error(f)
+		})
 	}
 
-	return w.Success(payload)
+	return w.Success(job)
 }

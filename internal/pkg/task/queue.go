@@ -34,14 +34,14 @@ func (q *Queue) List() []Job {
 	return append([]Job{}, q.jobs...)
 }
 
-func (q *Queue) Enqueue(uri string) error {
+func (q *Queue) Enqueue(uri string) (Job, error) {
 	q.mutex.Lock()
 
 	defer q.mutex.Unlock()
 
 	for _, j := range q.jobs {
 		if j.URI == uri {
-			return JobDuplicated
+			return Job{}, JobDuplicated
 		}
 	}
 
@@ -58,7 +58,7 @@ func (q *Queue) Enqueue(uri string) error {
 		q.channel <- true
 	}()
 
-	return nil
+	return j, nil
 }
 
 func (q *Queue) Dequeue() (Job, error) {
@@ -92,36 +92,36 @@ func (q *Queue) Wait() Job {
 	return job
 }
 
-func (q *Queue) Remove(id int) error {
+func (q *Queue) Remove(id int) (Job, error) {
 	return q.reject(func(job Job) bool {
 		return job.ID == id
 	})
 }
 
-func (q *Queue) Reject(uri string) error {
+func (q *Queue) Reject(uri string) (Job, error) {
 	return q.reject(func(job Job) bool {
 		return job.URI == uri
 	})
 }
 
-func (q *Queue) reject(test func(Job) bool) error {
+func (q *Queue) reject(test func(Job) bool) (Job, error) {
 	q.mutex.Lock()
 
 	defer q.mutex.Unlock()
 
 	index := 0
-	found := false
+	found := Job{ID: -1}
 	for _, job := range q.jobs {
-		if found || !test(job) {
+		if found.ID > 0 || !test(job) {
 			q.jobs[index] = job
 			index++
 		} else {
-			found = true
+			found = job
 		}
 	}
 
-	if !found {
-		return JobNotFound
+	if found.ID < 0 {
+		return Job{}, JobNotFound
 	}
 
 	q.jobs = q.jobs[:index]
@@ -130,6 +130,6 @@ func (q *Queue) reject(test func(Job) bool) error {
 		<-q.channel
 	}()
 
-	return nil
+	return found, nil
 
 }

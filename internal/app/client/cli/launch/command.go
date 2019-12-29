@@ -52,9 +52,7 @@ func run(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		fmt.Println(
-			jsonic.MustEncodePretty(res, 4),
-		)
+		fmt.Println(jsonic.MustEncode(res))
 	}
 
 	return nil
