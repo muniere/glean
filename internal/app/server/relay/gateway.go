@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net"
 
-	"github.com/muniere/glean/internal/pkg/packet"
+	"github.com/muniere/glean/internal/pkg/rpc"
 )
 
 type Gateway struct {
@@ -18,14 +18,14 @@ func NewGateway(con net.Conn) *Gateway {
 }
 
 func (w *Gateway) Success(payload interface{}) error {
-	return w.Respond(packet.Response{Ok: true, Payload: payload})
+	return w.Respond(rpc.Response{Ok: true, Payload: payload})
 }
 
 func (w *Gateway) Error(payload interface{}) error {
-	return w.Respond(packet.Response{Ok: false, Payload: payload})
+	return w.Respond(rpc.Response{Ok: false, Payload: payload})
 }
 
-func (w *Gateway) Respond(response packet.Response) error {
+func (w *Gateway) Respond(response rpc.Response) error {
 	res, err := json.Marshal(response)
 	if err != nil {
 		return err

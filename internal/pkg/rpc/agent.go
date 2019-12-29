@@ -1,4 +1,4 @@
-package agent
+package rpc
 
 import (
 	"encoding/json"
@@ -7,11 +7,8 @@ import (
 	"net"
 	"time"
 
-	"github.com/muniere/glean/internal/pkg/chars"
-	"github.com/muniere/glean/internal/pkg/packet"
+	"github.com/muniere/glean/internal/pkg/ascii"
 )
-
-const timeout = 30 * time.Second
 
 type Agent struct {
 	Address      string
@@ -20,12 +17,12 @@ type Agent struct {
 	WriteTimeout time.Duration
 }
 
-func New(address string, port int) *Agent {
+func NewAgent(address string, port int) *Agent {
 	return &Agent{
 		Address:      address,
 		Port:         port,
-		ReadTimeout:  timeout,
-		WriteTimeout: timeout,
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 30 * time.Second,
 	}
 }
 
@@ -34,7 +31,7 @@ func (c *Agent) Dial() (net.Conn, error) {
 	return net.Dial("tcp", addr)
 }
 
-func (c *Agent) Submit(request packet.Request) ([]byte, error) {
+func (c *Agent) Submit(request *Request) (*Response, error) {
 	// connect
 	con, err := c.Dial()
 	if err != nil {
@@ -46,7 +43,7 @@ func (c *Agent) Submit(request packet.Request) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	req := append(buf, chars.NUL)
+	req := append(buf, ascii.NUL)
 	_ = con.SetWriteDeadline(time.Now().Add(c.WriteTimeout))
 	_, err = con.Write(req)
 	if err != nil {
@@ -60,5 +57,10 @@ func (c *Agent) Submit(request packet.Request) ([]byte, error) {
 		return nil, err
 	}
 
-	return res, nil
+	var response Response
+	if err := json.Unmarshal(res, &response); err != nil {
+		return nil, err
+	}
+
+	return &response, nil
 }

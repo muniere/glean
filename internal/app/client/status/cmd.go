@@ -5,9 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/muniere/glean/internal/pkg/agent"
-	"github.com/muniere/glean/internal/pkg/defaults"
-	"github.com/muniere/glean/internal/pkg/packet"
+	"github.com/muniere/glean/internal/pkg/rpc"
+	"github.com/muniere/glean/internal/pkg/task"
 )
 
 func NewCommand() *cobra.Command {
@@ -23,15 +22,27 @@ func NewCommand() *cobra.Command {
 }
 
 func run(cmd *cobra.Command, args []string) error {
-	agt := agent.New(defaults.Host, defaults.Port)
+	agt := rpc.NewAgent(rpc.Host, rpc.Port)
 
-	msg := packet.StatusRequest()
-	res, err := agt.Submit(msg)
+	req := rpc.StatusRequest()
+	res, err := agt.Submit(&req)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(string(res))
+	var jobs []task.Job
+	if err := res.DecodePayload(&jobs); err != nil {
+		return err
+	}
+
+	if len(jobs) == 0 {
+		return nil
+	}
+
+	fmt.Println("ID\tQuery")
+	for _, job := range jobs {
+		fmt.Printf("%d\t%s\n", job.ID, job.Query)
+	}
 
 	return nil
 }

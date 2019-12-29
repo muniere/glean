@@ -1,22 +1,24 @@
 package action
 
 import (
-	"encoding/json"
-
 	"github.com/muniere/glean/internal/app/server/relay"
-	"github.com/muniere/glean/internal/pkg/packet"
+	"github.com/muniere/glean/internal/app/server/scope"
+	"github.com/muniere/glean/internal/pkg/box"
+	"github.com/muniere/glean/internal/pkg/rpc"
 )
 
-func Cancel(w *relay.Gateway, req *packet.Request) error {
-	bytes, err := json.Marshal(req.Payload)
-	if err != nil {
+func Cancel(w *relay.Gateway, ctx *scope.Context) error {
+	var payload rpc.CancelPayload
+	if err := ctx.Request.DecodePayload(&payload); err != nil {
 		return err
 	}
 
-	var payload packet.CancelPayload
-	if err := json.Unmarshal(bytes, &payload); err != nil {
-		return err
+	if err := ctx.Jobs.Remove(payload.Query); err != nil {
+		f := box.Failure{
+			Message: err.Error(),
+		}
+		return w.Error(f)
 	}
 
-	return w.Success(nil)
+	return w.Success(payload)
 }

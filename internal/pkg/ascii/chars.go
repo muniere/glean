@@ -1,4 +1,4 @@
-package chars
+package ascii
 
 const NUL = '\x00'
 const CR = '\r'

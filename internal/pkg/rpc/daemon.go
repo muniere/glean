@@ -1,4 +1,4 @@
-package daemon
+package rpc
 
 import (
 	"bufio"
@@ -10,12 +10,8 @@ import (
 	"net"
 	"time"
 
-	"github.com/muniere/glean/internal/pkg/chars"
-	"github.com/muniere/glean/internal/pkg/packet"
+	"github.com/muniere/glean/internal/pkg/ascii"
 )
-
-const window = 1024
-const timeout = 1 * time.Second
 
 type Daemon struct {
 	Address      string
@@ -24,24 +20,26 @@ type Daemon struct {
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
 	delegate     net.Listener
-	procs        map[string]func(net.Conn, []byte) error
-	fallback     func(net.Conn, []byte) error
+	procs        map[string]Proc
+	fallback     Proc
 }
 
-func New(addr string, port int) *Daemon {
+type Proc func(net.Conn, []byte) error
+
+func NewDaemon(addr string, port int) *Daemon {
 	return &Daemon{
 		Address:      addr,
 		Port:         port,
-		Window:       window,
-		ReadTimeout:  timeout,
-		WriteTimeout: timeout,
+		Window:       1024,
+		ReadTimeout:  1 * time.Second,
+		WriteTimeout: 1 * time.Second,
 		delegate:     nil,
-		procs:        map[string]func(net.Conn, []byte) error{},
+		procs:        map[string]Proc{},
 		fallback:     nil,
 	}
 }
 
-func (d *Daemon) Register(key string, proc func(net.Conn, []byte) error) {
+func (d *Daemon) Register(key string, proc Proc) {
 	d.procs[key] = proc
 }
 
@@ -49,11 +47,11 @@ func (d *Daemon) Unregister(key string) {
 	delete(d.procs, key)
 }
 
-func (d *Daemon) RegisterDefault(proc func(net.Conn, []byte) error) {
+func (d *Daemon) RegisterDefault(proc Proc) {
 	d.fallback = proc
 }
 
-func (d *Daemon) UnregisterDefault(proc func(net.Conn, []byte) error) {
+func (d *Daemon) UnregisterDefault(proc Proc) {
 	d.fallback = nil
 }
 
@@ -111,14 +109,14 @@ func (d *Daemon) handle(con net.Conn) error {
 	r := bufio.NewReader(con)
 
 	_ = con.SetReadDeadline(time.Now().Add(d.ReadTimeout))
-	req, err := r.ReadBytes(chars.NUL)
+	req, err := r.ReadBytes(ascii.NUL)
 	if err != nil {
 		return err
 	}
 
 	req = req[0 : len(req)-1]
 
-	var msg packet.Request
+	var msg Request
 	if err := json.Unmarshal(req, &msg); err != nil {
 		return err
 	}

@@ -1,9 +1,9 @@
-package packet
+package rpc
 
-type Request struct {
-	Action  string      `json:"action"`
-	Payload interface{} `json:"payload"`
-}
+//
+// Status
+//
+type StatusPayload struct{}
 
 func StatusRequest() Request {
 	return Request{
@@ -12,11 +12,25 @@ func StatusRequest() Request {
 	}
 }
 
+//
+// Launch
+//
+type LaunchPayload struct {
+	Query string `json:"query"`
+}
+
 func LaunchRequest(query string) Request {
 	return Request{
 		Action:  "launch",
 		Payload: LaunchPayload{Query: query},
 	}
+}
+
+//
+// Cancel
+//
+type CancelPayload struct {
+	Query string `json:"query"`
 }
 
 func CancelRequest(query string) Request {

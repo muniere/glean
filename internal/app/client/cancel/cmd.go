@@ -5,9 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/muniere/glean/internal/pkg/agent"
-	"github.com/muniere/glean/internal/pkg/defaults"
-	"github.com/muniere/glean/internal/pkg/packet"
+	"github.com/muniere/glean/internal/pkg/rpc"
 )
 
 func NewCommand() *cobra.Command {
@@ -23,16 +21,17 @@ func NewCommand() *cobra.Command {
 }
 
 func run(cmd *cobra.Command, args []string) error {
-	agt := agent.New(defaults.Host, defaults.Port)
+	agt := rpc.NewAgent(rpc.Host, rpc.Port)
 
 	for _, query := range args {
-		req := packet.CancelRequest(query)
-		res, err := agt.Submit(req)
+		req := rpc.CancelRequest(query)
+		res, err := agt.Submit(&req)
 		if err != nil {
 			return err
 		}
 
-		fmt.Println(string(res))
+		str, _ := res.EncodePretty(4)
+		fmt.Println(str)
 	}
 
 	return nil
