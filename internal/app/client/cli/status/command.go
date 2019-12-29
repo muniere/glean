@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/muniere/glean/internal/pkg/jsonic"
 	"github.com/muniere/glean/internal/pkg/rpc"
 	"github.com/muniere/glean/internal/pkg/task"
 )
@@ -31,7 +32,7 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	var jobs []task.Job
-	if err := res.DecodePayload(&jobs); err != nil {
+	if err := jsonic.Transcode(res.Payload, &jobs); err != nil {
 		return err
 	}
 

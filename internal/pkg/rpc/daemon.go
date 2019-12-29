@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"bufio"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -12,6 +11,7 @@ import (
 	"time"
 
 	"github.com/muniere/glean/internal/pkg/ascii"
+	"github.com/muniere/glean/internal/pkg/jsonic"
 )
 
 type Daemon struct {
@@ -131,7 +131,7 @@ func (d *Daemon) handle(con net.Conn) error {
 	req = req[0 : len(req)-1]
 
 	var msg Request
-	if err := json.Unmarshal(req, &msg); err != nil {
+	if err := jsonic.Unmarshal(req, &msg); err != nil {
 		return err
 	}
 

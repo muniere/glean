@@ -1,13 +1,13 @@
 package rpc
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net"
 	"time"
 
 	"github.com/muniere/glean/internal/pkg/ascii"
+	"github.com/muniere/glean/internal/pkg/jsonic"
 )
 
 type Agent struct {
@@ -39,7 +39,7 @@ func (c *Agent) Submit(request *Request) (*Response, error) {
 	}
 
 	// request
-	buf, err := json.Marshal(request)
+	buf, err := jsonic.Marshal(request)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (c *Agent) Submit(request *Request) (*Response, error) {
 	}
 
 	var response Response
-	if err := json.Unmarshal(res, &response); err != nil {
+	if err := jsonic.Unmarshal(res, &response); err != nil {
 		return nil, err
 	}
 

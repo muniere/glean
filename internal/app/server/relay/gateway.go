@@ -1,9 +1,9 @@
 package relay
 
 import (
-	"encoding/json"
 	"net"
 
+	"github.com/muniere/glean/internal/pkg/jsonic"
 	"github.com/muniere/glean/internal/pkg/rpc"
 )
 
@@ -26,7 +26,7 @@ func (w *Gateway) Error(payload interface{}) error {
 }
 
 func (w *Gateway) Respond(response rpc.Response) error {
-	res, err := json.Marshal(response)
+	res, err := jsonic.Marshal(response)
 	if err != nil {
 		return err
 	}

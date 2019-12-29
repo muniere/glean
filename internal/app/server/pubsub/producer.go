@@ -1,12 +1,12 @@
 package pubsub
 
 import (
-	"encoding/json"
 	"net"
 
 	"github.com/muniere/glean/internal/app/server/action"
 	"github.com/muniere/glean/internal/app/server/relay"
 	"github.com/muniere/glean/internal/app/server/scope"
+	"github.com/muniere/glean/internal/pkg/jsonic"
 	"github.com/muniere/glean/internal/pkg/rpc"
 	"github.com/muniere/glean/internal/pkg/task"
 )
@@ -52,7 +52,7 @@ func (s *Producer) Wait() {
 func (s *Producer) Register(key string, proc Proc) {
 	s.daemon.Register(key, func(con net.Conn, req []byte) error {
 		var r rpc.Request
-		if err := json.Unmarshal(req, &r); err != nil {
+		if err := jsonic.Unmarshal(req, &r); err != nil {
 			return err
 		}
 
@@ -66,7 +66,7 @@ func (s *Producer) Register(key string, proc Proc) {
 func (s *Producer) RegisterDefault(proc Proc) {
 	s.daemon.RegisterDefault(func(con net.Conn, req []byte) error {
 		var r rpc.Request
-		if err := json.Unmarshal(req, &r); err != nil {
+		if err := jsonic.Unmarshal(req, &r); err != nil {
 			return err
 		}
 		return proc(

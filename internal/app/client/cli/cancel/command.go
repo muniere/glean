@@ -8,6 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/muniere/glean/internal/pkg/jsonic"
 	"github.com/muniere/glean/internal/pkg/rpc"
 )
 
@@ -51,8 +52,9 @@ func run(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		str, _ := res.EncodePretty(4)
-		fmt.Println(str)
+		fmt.Println(
+			jsonic.MustEncodePretty(res, 4),
+		)
 	}
 
 	return nil

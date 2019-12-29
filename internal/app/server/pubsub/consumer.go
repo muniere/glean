@@ -1,11 +1,11 @@
 package pubsub
 
 import (
-	"encoding/json"
 	"time"
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/muniere/glean/internal/pkg/jsonic"
 	"github.com/muniere/glean/internal/pkg/task"
 )
 
@@ -40,8 +40,8 @@ func (m *Consumer) Spawn() {
 				"job":  job,
 				"meta": meta,
 			}
-			b, _ := json.Marshal(m)
-			log.Info(string(b))
+			log.Info(jsonic.MustEncode(m))
+
 			return nil
 		},
 		func(err error) {
