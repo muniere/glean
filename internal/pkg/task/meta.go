@@ -6,23 +6,22 @@ import (
 	"time"
 )
 
-type Job struct {
-	ID        int       `json:"id"`
-	Query     string    `json:"query"`
+type Meta struct {
+	Worker    int       `json:"worker"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
-func (j *Job) Encode() (string, error) {
-	bytes, err := json.Marshal(j)
+func (m *Meta) Encode() (string, error) {
+	bytes, err := json.Marshal(m)
 	if err != nil {
 		return "", err
 	}
 	return string(bytes), nil
 }
 
-func (j *Job) EncodePretty(indent int) (string, error) {
+func (m *Meta) EncodePretty(indent int) (string, error) {
 	spacer := strings.Repeat(" ", indent)
-	bytes, err := json.MarshalIndent(j, "", spacer)
+	bytes, err := json.MarshalIndent(m, "", spacer)
 	if err != nil {
 		return "", err
 	}

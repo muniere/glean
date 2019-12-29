@@ -6,5 +6,5 @@ import (
 )
 
 func Status(w *relay.Gateway, ctx *scope.Context) error {
-	return w.Success(ctx.Jobs.List())
+	return w.Success(ctx.Queue.List())
 }

@@ -21,7 +21,7 @@ func NewCommand() *cobra.Command {
 }
 
 func run(cmd *cobra.Command, args []string) error {
-	agt := rpc.NewAgent(rpc.Host, rpc.Port)
+	agt := rpc.NewAgent(rpc.RemoteAddr, rpc.Port)
 
 	for _, query := range args {
 		req := rpc.LaunchRequest(query)

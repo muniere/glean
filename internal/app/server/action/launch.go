@@ -13,7 +13,7 @@ func Launch(w *relay.Gateway, ctx *scope.Context) error {
 		return err
 	}
 
-	if err := ctx.Jobs.Enqueue(payload.Query); err != nil {
+	if err := ctx.Queue.Enqueue(payload.Query); err != nil {
 		f := box.Failure{
 			Message: err.Error(),
 		}

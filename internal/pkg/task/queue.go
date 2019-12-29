@@ -3,19 +3,26 @@ package task
 import (
 	"errors"
 	"sync"
+	"time"
 )
 
+var QueueEmpty = errors.New("queue is empty")
+var JobNotFound = errors.New("job not found")
+var JobDuplicated = errors.New("job already exists")
+
 type Queue struct {
-	seq   int
-	jobs  []Job
-	mutex *sync.Mutex
+	seq     int
+	jobs    []Job
+	mutex   *sync.Mutex
+	channel chan bool
 }
 
 func NewQueue() *Queue {
 	return &Queue{
-		seq:   0,
-		jobs:  []Job{},
-		mutex: &sync.Mutex{},
+		seq:     0,
+		jobs:    []Job{},
+		mutex:   &sync.Mutex{},
+		channel: make(chan bool),
 	}
 }
 
@@ -34,17 +41,22 @@ func (q *Queue) Enqueue(query string) error {
 
 	for _, j := range q.jobs {
 		if j.Query == query {
-			return errors.New("duplicate")
+			return JobDuplicated
 		}
 	}
 
 	j := Job{
-		ID:    q.seq + 1,
-		Query: query,
+		ID:        q.seq + 1,
+		Query:     query,
+		Timestamp: time.Now(),
 	}
 
 	q.jobs = append(q.jobs, j)
 	q.seq = j.ID
+
+	go func() {
+		q.channel <- true
+	}()
 
 	return nil
 }
@@ -55,13 +67,29 @@ func (q *Queue) Dequeue() (Job, error) {
 	defer q.mutex.Unlock()
 
 	if len(q.jobs) == 0 {
-		return Job{}, errors.New("empty")
+		return Job{}, QueueEmpty
 	}
 
 	job := q.jobs[0]
 	q.jobs = q.jobs[1:]
 
+	go func() {
+		<-q.channel
+	}()
+
 	return job, nil
+}
+
+func (q *Queue) Wait() Job {
+	<-q.channel
+
+	q.mutex.Lock()
+
+	defer q.mutex.Unlock()
+
+	job := q.jobs[0]
+	q.jobs = q.jobs[1:]
+	return job
 }
 
 func (q *Queue) Remove(query string) error {
@@ -69,21 +97,26 @@ func (q *Queue) Remove(query string) error {
 
 	defer q.mutex.Unlock()
 
-	n := 0
-	m := 0
-	for _, j := range q.jobs {
-		if j.Query == query {
-			m++
+	index := 0
+	found := false
+	for _, job := range q.jobs {
+		if found || job.Query != query {
+			q.jobs[index] = job
+			index++
 		} else {
-			q.jobs[n] = j
-			n++
+			found = true
 		}
 	}
 
-	if m == 0 {
-		return errors.New("not found")
+	if !found {
+		return JobNotFound
 	}
 
-	q.jobs = q.jobs[:n]
+	q.jobs = q.jobs[:index]
+
+	go func() {
+		<-q.channel
+	}()
+
 	return nil
 }

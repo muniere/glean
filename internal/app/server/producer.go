@@ -11,17 +11,22 @@ import (
 	"github.com/muniere/glean/internal/pkg/task"
 )
 
-type Server struct {
-	delegate *rpc.Daemon
-	jobs     *task.Queue
+type Producer struct {
+	daemon *rpc.Daemon
+	queue  *task.Queue
+}
+
+type ProducerConfig struct {
+	Address string
+	Port    int
 }
 
 type Proc func(*relay.Gateway, *scope.Context) error
 
-func New(addr string, port int) *Server {
-	s := &Server{
-		delegate: rpc.NewDaemon(addr, port),
-		jobs:     task.NewQueue(),
+func NewProducer(queue *task.Queue, config ProducerConfig) *Producer {
+	s := &Producer{
+		daemon: rpc.NewDaemon(config.Address, config.Port),
+		queue:  queue,
 	}
 
 	s.Register("status", action.Status)
@@ -32,16 +37,20 @@ func New(addr string, port int) *Server {
 	return s
 }
 
-func (s *Server) Start() error {
-	return s.delegate.Start()
+func (s *Producer) Start() error {
+	return s.daemon.Start()
 }
 
-func (s *Server) Stop() error {
-	return s.delegate.Stop()
+func (s *Producer) Stop() error {
+	return s.daemon.Stop()
 }
 
-func (s *Server) Register(key string, proc Proc) {
-	s.delegate.Register(key, func(con net.Conn, req []byte) error {
+func (s *Producer) Wait() {
+	s.daemon.Wait()
+}
+
+func (s *Producer) Register(key string, proc Proc) {
+	s.daemon.Register(key, func(con net.Conn, req []byte) error {
 		var r rpc.Request
 		if err := json.Unmarshal(req, &r); err != nil {
 			return err
@@ -49,20 +58,20 @@ func (s *Server) Register(key string, proc Proc) {
 
 		return proc(
 			relay.NewGateway(con),
-			scope.NewContext(&r, s.jobs),
+			scope.NewContext(&r, s.queue),
 		)
 	})
 }
 
-func (s *Server) RegisterDefault(proc Proc) {
-	s.delegate.RegisterDefault(func(con net.Conn, req []byte) error {
+func (s *Producer) RegisterDefault(proc Proc) {
+	s.daemon.RegisterDefault(func(con net.Conn, req []byte) error {
 		var r rpc.Request
 		if err := json.Unmarshal(req, &r); err != nil {
 			return err
 		}
 		return proc(
 			relay.NewGateway(con),
-			scope.NewContext(&r, s.jobs),
+			scope.NewContext(&r, s.queue),
 		)
 	})
 }

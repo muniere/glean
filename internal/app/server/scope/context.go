@@ -7,12 +7,12 @@ import (
 
 type Context struct {
 	Request *rpc.Request
-	Jobs    *task.Queue
+	Queue   *task.Queue
 }
 
-func NewContext(req *rpc.Request, jobs *task.Queue) *Context {
+func NewContext(req *rpc.Request, queue *task.Queue) *Context {
 	return &Context{
 		Request: req,
-		Jobs:    jobs,
+		Queue:   queue,
 	}
 }

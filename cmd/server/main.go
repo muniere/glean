@@ -4,13 +4,34 @@ import (
 	"log"
 
 	"github.com/muniere/glean/internal/app/server"
+	"github.com/muniere/glean/internal/pkg/rpc"
+	"github.com/muniere/glean/internal/pkg/task"
 )
 
 func main() {
-	srv := server.New("0.0.0.0", 2718)
-	err := srv.Start()
+	queue := task.NewQueue()
 
+	consumer := server.NewConsumer(queue, server.ConsumerConfig{
+		Concurrency: task.Concurrency,
+	})
+
+	producer := server.NewProducer(queue, server.ProducerConfig{
+		Address: rpc.LocalAddr,
+		Port:    rpc.Port,
+	})
+
+	var err error
+
+	err = consumer.Start()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	err = producer.Start()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	consumer.Wait()
+	producer.Wait()
 }

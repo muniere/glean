@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/muniere/glean/internal/pkg/ascii"
@@ -22,6 +23,7 @@ type Daemon struct {
 	delegate     net.Listener
 	procs        map[string]Proc
 	fallback     Proc
+	group        *sync.WaitGroup
 }
 
 type Proc func(net.Conn, []byte) error
@@ -36,6 +38,7 @@ func NewDaemon(addr string, port int) *Daemon {
 		delegate:     nil,
 		procs:        map[string]Proc{},
 		fallback:     nil,
+		group:        &sync.WaitGroup{},
 	}
 }
 
@@ -63,24 +66,33 @@ func (d *Daemon) Start() error {
 	}
 
 	d.delegate = listener
+	d.group.Add(1)
 
-	defer func() {
-		_ = d.Stop()
+	go func() {
+		defer d.group.Done()
+
+		for {
+			if err := d.poll(); err != nil {
+				log.Fatal(err)
+			}
+		}
 	}()
 
-	for {
-		d.poll()
-	}
+	return nil
 }
 
 func (d *Daemon) Stop() error {
 	return d.delegate.Close()
 }
 
-func (d *Daemon) poll() {
+func (d *Daemon) Wait() {
+	d.group.Wait()
+}
+
+func (d *Daemon) poll() error {
 	con, err := d.delegate.Accept()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	go func() {
@@ -102,6 +114,8 @@ func (d *Daemon) poll() {
 		}
 		log.Fatal(err)
 	}()
+
+	return nil
 }
 
 func (d *Daemon) handle(con net.Conn) error {
