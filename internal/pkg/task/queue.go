@@ -34,20 +34,20 @@ func (q *Queue) List() []Job {
 	return append([]Job{}, q.jobs...)
 }
 
-func (q *Queue) Enqueue(query string) error {
+func (q *Queue) Enqueue(uri string) error {
 	q.mutex.Lock()
 
 	defer q.mutex.Unlock()
 
 	for _, j := range q.jobs {
-		if j.Query == query {
+		if j.URI == uri {
 			return JobDuplicated
 		}
 	}
 
 	j := Job{
 		ID:        q.seq + 1,
-		Query:     query,
+		URI:       uri,
 		Timestamp: time.Now(),
 	}
 
@@ -92,7 +92,19 @@ func (q *Queue) Wait() Job {
 	return job
 }
 
-func (q *Queue) Remove(query string) error {
+func (q *Queue) Remove(id int) error {
+	return q.reject(func(job Job) bool {
+		return job.ID == id
+	})
+}
+
+func (q *Queue) Reject(uri string) error {
+	return q.reject(func(job Job) bool {
+		return job.URI == uri
+	})
+}
+
+func (q *Queue) reject(test func(Job) bool) error {
 	q.mutex.Lock()
 
 	defer q.mutex.Unlock()
@@ -100,7 +112,7 @@ func (q *Queue) Remove(query string) error {
 	index := 0
 	found := false
 	for _, job := range q.jobs {
-		if found || job.Query != query {
+		if found || !test(job) {
 			q.jobs[index] = job
 			index++
 		} else {
@@ -119,4 +131,5 @@ func (q *Queue) Remove(query string) error {
 	}()
 
 	return nil
+
 }

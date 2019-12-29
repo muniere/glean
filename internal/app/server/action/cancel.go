@@ -13,7 +13,7 @@ func Cancel(w *relay.Gateway, ctx *scope.Context) error {
 		return err
 	}
 
-	if err := ctx.Queue.Remove(payload.Query); err != nil {
+	if err := ctx.Queue.Remove(payload.ID); err != nil {
 		f := box.Failure{
 			Message: err.Error(),
 		}

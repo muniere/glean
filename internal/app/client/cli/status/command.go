@@ -39,9 +39,9 @@ func run(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Println("id\tQuery\tTimestamp")
+	fmt.Println("id\tURI\tTimestamp")
 	for _, job := range jobs {
-		fmt.Printf("%d\t%s\t%s\n", job.ID, job.Query, job.Timestamp)
+		fmt.Printf("%d\t%s\t%s\n", job.ID, job.URI, job.Timestamp)
 	}
 
 	return nil

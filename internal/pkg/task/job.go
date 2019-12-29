@@ -8,7 +8,7 @@ import (
 
 type Job struct {
 	ID        int       `json:"id"`
-	Query     string    `json:"query"`
+	URI       string    `json:"uri"`
 	Timestamp time.Time `json:"timestamp"`
 }
 

@@ -1,5 +1,9 @@
 package rpc
 
+import (
+	"net/url"
+)
+
 //
 // Status
 //
@@ -16,13 +20,13 @@ func StatusRequest() Request {
 // Launch
 //
 type LaunchPayload struct {
-	Query string `json:"query"`
+	URI string `json:"uri"`
 }
 
-func LaunchRequest(query string) Request {
+func LaunchRequest(uri *url.URL) Request {
 	return Request{
 		Action:  "launch",
-		Payload: LaunchPayload{Query: query},
+		Payload: LaunchPayload{URI: uri.String()},
 	}
 }
 
@@ -30,12 +34,12 @@ func LaunchRequest(query string) Request {
 // Cancel
 //
 type CancelPayload struct {
-	Query string `json:"query"`
+	ID int `json:"id"`
 }
 
-func CancelRequest(query string) Request {
+func CancelRequest(id int) Request {
 	return Request{
 		Action:  "cancel",
-		Payload: CancelPayload{Query: query},
+		Payload: CancelPayload{ID: id},
 	}
 }
