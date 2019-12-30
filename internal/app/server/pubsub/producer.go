@@ -3,7 +3,10 @@ package pubsub
 import (
 	"net"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/muniere/glean/internal/app/server/action"
+	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/jsonic"
 	"github.com/muniere/glean/internal/pkg/rpc"
 	"github.com/muniere/glean/internal/pkg/task"
@@ -37,10 +40,18 @@ func NewProducer(queue *task.Queue, config ProducerConfig) *Producer {
 }
 
 func (p *Producer) Start() error {
+	log.Info(jsonic.MustEncode(box.Dict{
+		"module": "producer",
+		"label":  "start",
+	}))
 	return p.daemon.Start()
 }
 
 func (p *Producer) Stop() error {
+	log.Info(jsonic.MustEncode(box.Dict{
+		"module": "producer",
+		"label":  "stop",
+	}))
 	return p.daemon.Stop()
 }
 

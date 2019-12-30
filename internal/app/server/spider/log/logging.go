@@ -9,6 +9,7 @@ import (
 
 func Debug(label string, action string, context box.Dict) {
 	log.Debug(jsonic.MustEncode(box.Dict{
+		"module":  "spider",
 		"label":   label,
 		"action":  action,
 		"context": context,
@@ -17,6 +18,7 @@ func Debug(label string, action string, context box.Dict) {
 
 func Info(label string, action string, context box.Dict) {
 	log.Info(jsonic.MustEncode(box.Dict{
+		"module":  "spider",
 		"label":   label,
 		"action":  action,
 		"context": context,
@@ -25,6 +27,7 @@ func Info(label string, action string, context box.Dict) {
 
 func Result(value interface{}, context box.Dict) {
 	log.Info(jsonic.MustEncode(box.Dict{
+		"module":  "spider",
 		"label":   "result",
 		"result":  value,
 		"context": context,

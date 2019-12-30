@@ -105,10 +105,18 @@ func (m *Consumer) Spawn(config ConsumerConfig) {
 }
 
 func (m *Consumer) Start() error {
+	log.Info(jsonic.MustEncode(box.Dict{
+		"module": "consumer",
+		"label":  "start",
+	}))
 	return m.guild.Start()
 }
 
 func (m *Consumer) Stop() error {
+	log.Info(jsonic.MustEncode(box.Dict{
+		"module": "consumer",
+		"label":  "stop",
+	}))
 	return m.guild.Stop()
 }
 

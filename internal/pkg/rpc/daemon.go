@@ -5,14 +5,19 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net"
+	"strings"
 	"sync"
 	"time"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/muniere/glean/internal/pkg/ascii"
+	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/jsonic"
 )
+
+var ConnectionClosed = errors.New("connection closed")
 
 type Daemon struct {
 	Address      string
@@ -72,9 +77,23 @@ func (d *Daemon) Start() error {
 		defer d.group.Done()
 
 		for {
-			if err := d.poll(); err != nil {
-				log.Fatal(err)
+			err := d.poll()
+
+			if err == nil {
+				continue
 			}
+			if err == ConnectionClosed {
+				log.Trace(jsonic.MustEncode(box.Dict{
+					"module":  "daemon",
+					"action":  "accept",
+					"label":   "stop",
+					"message": err.Error(),
+				}))
+				break
+			}
+
+			log.Warn(err)
+			break
 		}
 	}()
 
@@ -92,7 +111,12 @@ func (d *Daemon) Wait() {
 func (d *Daemon) poll() error {
 	con, err := d.delegate.Accept()
 	if err != nil {
-		return err
+		// see https://github.com/golang/net/blob/master/http2/server.go#L676-L679
+		if strings.Contains(err.Error(), "use of closed network connection") {
+			return ConnectionClosed
+		} else {
+			return err
+		}
 	}
 
 	go func() {
@@ -105,14 +129,22 @@ func (d *Daemon) poll() error {
 		}
 		e, ok := err.(net.Error)
 		if ok && e.Timeout() {
-			fmt.Println("Timeout")
+			log.Trace(jsonic.MustEncode(box.Dict{
+				"module": "daemon",
+				"action": "poll",
+				"label":  "Timeout",
+			}))
 			return
 		}
 		if err == io.EOF {
-			fmt.Println("End of File")
+			log.Trace(jsonic.MustEncode(box.Dict{
+				"module": "daemon",
+				"action": "poll",
+				"label":  "EOF",
+			}))
 			return
 		}
-		log.Fatal(err)
+		log.Error(err)
 	}()
 
 	return nil
