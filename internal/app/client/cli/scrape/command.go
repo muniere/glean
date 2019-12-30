@@ -1,4 +1,4 @@
-package launch
+package scrape
 
 import (
 	"errors"
@@ -14,7 +14,7 @@ import (
 
 func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "launch",
+		Use:  "scrape",
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return run(cmd, args)
@@ -46,7 +46,7 @@ func run(cmd *cobra.Command, args []string) error {
 	agt := rpc.NewAgent(rpc.RemoteAddr, rpc.Port)
 
 	for _, uri := range uris {
-		req := rpc.LaunchRequest(uri)
+		req := rpc.ScrapeRequest(uri)
 		res, err := agt.Submit(&req)
 		if err != nil {
 			return err

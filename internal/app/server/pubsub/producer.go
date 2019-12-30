@@ -29,9 +29,9 @@ func NewProducer(queue *task.Queue, config ProducerConfig) *Producer {
 		queue:  queue,
 	}
 
-	s.Register("status", action.Status)
-	s.Register("launch", action.Launch)
-	s.Register("cancel", action.Cancel)
+	s.Register(rpc.Status, action.Status)
+	s.Register(rpc.Scrape, action.Scrape)
+	s.Register(rpc.Cancel, action.Cancel)
 	s.RegisterDefault(action.Uncaught)
 
 	return s

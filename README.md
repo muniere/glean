@@ -22,11 +22,11 @@ $ gleand
 # Check current status
 $ glean status
 
-# Register new crawling
-$ glean launch "https://example.com/"
+# Register new scraping task
+$ glean scrape "https://example.com/"
 
-# Unregister or abort crawling
-$ glean cancel "https://example.com/"
+# Cancel scraping task
+$ glean cancel 1234
 ```
 
 ## License

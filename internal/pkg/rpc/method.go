@@ -4,6 +4,12 @@ import (
 	"net/url"
 )
 
+const (
+	Status = "status"
+	Scrape = "scrape"
+	Cancel = "cancel"
+)
+
 //
 // Status
 //
@@ -11,22 +17,22 @@ type StatusPayload struct{}
 
 func StatusRequest() Request {
 	return Request{
-		Action:  "status",
+		Action:  Status,
 		Payload: StatusPayload{},
 	}
 }
 
 //
-// Launch
+// Scrape
 //
-type LaunchPayload struct {
+type ScrapePayload struct {
 	URI string `json:"uri"`
 }
 
-func LaunchRequest(uri *url.URL) Request {
+func ScrapeRequest(uri *url.URL) Request {
 	return Request{
-		Action:  "launch",
-		Payload: LaunchPayload{URI: uri.String()},
+		Action:  Scrape,
+		Payload: ScrapePayload{URI: uri.String()},
 	}
 }
 
@@ -39,7 +45,7 @@ type CancelPayload struct {
 
 func CancelRequest(id int) Request {
 	return Request{
-		Action:  "cancel",
+		Action:  Cancel,
 		Payload: CancelPayload{ID: id},
 	}
 }

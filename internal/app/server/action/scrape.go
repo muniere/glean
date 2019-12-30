@@ -8,8 +8,8 @@ import (
 	"github.com/muniere/glean/internal/pkg/rpc"
 )
 
-func Launch(w *relay.Gateway, ctx *scope.Context) error {
-	var payload rpc.LaunchPayload
+func Scrape(w *relay.Gateway, ctx *scope.Context) error {
+	var payload rpc.ScrapePayload
 	if err := jsonic.Transcode(ctx.Request.Payload, &payload); err != nil {
 		return err
 	}
