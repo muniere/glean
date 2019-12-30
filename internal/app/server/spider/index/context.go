@@ -15,4 +15,3 @@ func (c *context) dict() box.Dict {
 		"uri": c.uri.String(),
 	}
 }
-

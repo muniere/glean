@@ -7,4 +7,3 @@ import (
 type Options struct {
 	Grep *regexp.Regexp
 }
-

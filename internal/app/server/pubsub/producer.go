@@ -4,7 +4,6 @@ import (
 	"net"
 
 	"github.com/muniere/glean/internal/app/server/action"
-	"github.com/muniere/glean/internal/app/server/scope"
 	"github.com/muniere/glean/internal/pkg/jsonic"
 	"github.com/muniere/glean/internal/pkg/rpc"
 	"github.com/muniere/glean/internal/pkg/task"
@@ -20,7 +19,7 @@ type ProducerConfig struct {
 	Port    int
 }
 
-type Proc func(*rpc.Gateway, *scope.Context) error
+type Proc func(*action.Context) error
 
 func NewProducer(queue *task.Queue, config ProducerConfig) *Producer {
 	s := &Producer{
@@ -32,46 +31,47 @@ func NewProducer(queue *task.Queue, config ProducerConfig) *Producer {
 	s.Register(rpc.Scrape, action.Scrape)
 	s.Register(rpc.Clutch, action.Clutch)
 	s.Register(rpc.Cancel, action.Cancel)
-	s.RegisterDefault(action.Uncaught)
+	s.RegisterDefault(action.Fallback)
 
 	return s
 }
 
-func (s *Producer) Start() error {
-	return s.daemon.Start()
+func (p *Producer) Start() error {
+	return p.daemon.Start()
 }
 
-func (s *Producer) Stop() error {
-	return s.daemon.Stop()
+func (p *Producer) Stop() error {
+	return p.daemon.Stop()
 }
 
-func (s *Producer) Wait() {
-	s.daemon.Wait()
+func (p *Producer) Wait() {
+	p.daemon.Wait()
 }
 
-func (s *Producer) Register(key string, proc Proc) {
-	s.daemon.Register(key, func(con net.Conn, req []byte) error {
-		var r rpc.Request
-		if err := jsonic.Unmarshal(req, &r); err != nil {
+func (p *Producer) Register(key string, proc Proc) {
+	p.daemon.Register(key, func(con net.Conn, req []byte) error {
+		var request rpc.Request
+		if err := jsonic.Unmarshal(req, &request); err != nil {
 			return err
 		}
 
-		return proc(
-			rpc.NewGateway(con),
-			scope.NewContext(&r, s.queue),
-		)
+		gateway := rpc.NewGateway(con)
+		context := action.NewContext(&request, gateway, p.queue)
+
+		return proc(context)
 	})
 }
 
-func (s *Producer) RegisterDefault(proc Proc) {
-	s.daemon.RegisterDefault(func(con net.Conn, req []byte) error {
-		var r rpc.Request
-		if err := jsonic.Unmarshal(req, &r); err != nil {
+func (p *Producer) RegisterDefault(proc Proc) {
+	p.daemon.RegisterDefault(func(con net.Conn, req []byte) error {
+		var request rpc.Request
+		if err := jsonic.Unmarshal(req, &request); err != nil {
 			return err
 		}
-		return proc(
-			rpc.NewGateway(con),
-			scope.NewContext(&r, s.queue),
-		)
+
+		gateway := rpc.NewGateway(con)
+		context := action.NewContext(&request, gateway, p.queue)
+
+		return proc(context)
 	})
 }

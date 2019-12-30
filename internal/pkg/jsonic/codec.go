@@ -22,9 +22,9 @@ func Unmarshal(data []byte, v interface{}) error {
 }
 
 func MustUnmarshal(data []byte, v interface{}) {
-	 if err := Unmarshal(data, v); err != nil {
-	 	panic(err)
-	 }
+	if err := Unmarshal(data, v); err != nil {
+		panic(err)
+	}
 }
 
 func Encode(v interface{}) (string, error) {

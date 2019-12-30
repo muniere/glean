@@ -1,4 +1,4 @@
-package scope
+package context
 
 import (
 	"github.com/muniere/glean/internal/pkg/rpc"
@@ -7,12 +7,14 @@ import (
 
 type Context struct {
 	Request *rpc.Request
+	Gateway *rpc.Gateway
 	Queue   *task.Queue
 }
 
-func NewContext(req *rpc.Request, queue *task.Queue) *Context {
+func NewContext(request *rpc.Request, gateway *rpc.Gateway, queue *task.Queue) *Context {
 	return &Context{
-		Request: req,
+		Request: request,
+		Gateway: gateway,
 		Queue:   queue,
 	}
 }

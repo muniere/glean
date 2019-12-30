@@ -8,8 +8,8 @@ import (
 	"net/url"
 	"regexp"
 
+	"github.com/muniere/glean/internal/app/server/spider/log"
 	"github.com/muniere/glean/internal/pkg/jsonic"
-	"github.com/muniere/glean/internal/pkg/spider/log"
 )
 
 type command struct {

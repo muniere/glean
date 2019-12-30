@@ -1,13 +1,13 @@
-package action
+package scrape
 
 import (
-	"github.com/muniere/glean/internal/app/server/scope"
+	"github.com/muniere/glean/internal/app/server/action/context"
 	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/jsonic"
 	"github.com/muniere/glean/internal/pkg/rpc"
 )
 
-func Scrape(w *rpc.Gateway, ctx *scope.Context) error {
+func Perform(ctx *context.Context) error {
 	var payload rpc.ScrapePayload
 	if err := jsonic.Transcode(ctx.Request.Payload, &payload); err != nil {
 		return err
@@ -15,10 +15,10 @@ func Scrape(w *rpc.Gateway, ctx *scope.Context) error {
 
 	job, err := ctx.Queue.Enqueue(rpc.Scrape, payload.URI)
 	if err != nil {
-		return w.Error(box.Failure{
+		return ctx.Gateway.Error(box.Failure{
 			Message: err.Error(),
 		})
 	}
 
-	return w.Success(job)
+	return ctx.Gateway.Success(job)
 }

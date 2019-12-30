@@ -9,13 +9,12 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/muniere/glean/internal/app/server/spider"
+	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/jsonic"
 	"github.com/muniere/glean/internal/pkg/rpc"
-	"github.com/muniere/glean/internal/pkg/spider"
 	"github.com/muniere/glean/internal/pkg/task"
 )
-
-type dict map[string]interface{}
 
 type Consumer struct {
 	guild *task.Guild
@@ -78,7 +77,7 @@ func (m *Consumer) Spawn(config ConsumerConfig) {
 
 	action := func(job task.Job, meta task.Meta) error {
 		log.Info(jsonic.MustEncode(
-			dict{"job": job, "meta": meta},
+			box.Dict{"job": job, "meta": meta},
 		))
 
 		uri, err := url.Parse(job.URI)

@@ -12,4 +12,3 @@ type Options struct {
 	DryRun      bool
 	Interval    time.Duration
 }
-

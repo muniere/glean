@@ -7,28 +7,26 @@ import (
 	"github.com/muniere/glean/internal/pkg/jsonic"
 )
 
-type dict = box.Dict
-
-func Debug(label string, action string, context dict) {
-	log.Debug(jsonic.MustEncode(dict{
+func Debug(label string, action string, context box.Dict) {
+	log.Debug(jsonic.MustEncode(box.Dict{
 		"label":   label,
 		"action":  action,
 		"context": context,
 	}))
 }
 
-func Info(label string, action string, context dict) {
-	log.Info(jsonic.MustEncode(dict{
+func Info(label string, action string, context box.Dict) {
+	log.Info(jsonic.MustEncode(box.Dict{
 		"label":   label,
 		"action":  action,
 		"context": context,
 	}))
 }
 
-func Result(value interface{}, context dict) {
-	log.Info(jsonic.MustEncode(dict{
-		"label": "result",
-		"result": value,
+func Result(value interface{}, context box.Dict) {
+	log.Info(jsonic.MustEncode(box.Dict{
+		"label":   "result",
+		"result":  value,
 		"context": context,
 	}))
 }
