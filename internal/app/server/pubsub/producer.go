@@ -4,7 +4,6 @@ import (
 	"net"
 
 	"github.com/muniere/glean/internal/app/server/action"
-	"github.com/muniere/glean/internal/app/server/relay"
 	"github.com/muniere/glean/internal/app/server/scope"
 	"github.com/muniere/glean/internal/pkg/jsonic"
 	"github.com/muniere/glean/internal/pkg/rpc"
@@ -21,7 +20,7 @@ type ProducerConfig struct {
 	Port    int
 }
 
-type Proc func(*relay.Gateway, *scope.Context) error
+type Proc func(*rpc.Gateway, *scope.Context) error
 
 func NewProducer(queue *task.Queue, config ProducerConfig) *Producer {
 	s := &Producer{
@@ -58,7 +57,7 @@ func (s *Producer) Register(key string, proc Proc) {
 		}
 
 		return proc(
-			relay.NewGateway(con),
+			rpc.NewGateway(con),
 			scope.NewContext(&r, s.queue),
 		)
 	})
@@ -71,7 +70,7 @@ func (s *Producer) RegisterDefault(proc Proc) {
 			return err
 		}
 		return proc(
-			relay.NewGateway(con),
+			rpc.NewGateway(con),
 			scope.NewContext(&r, s.queue),
 		)
 	})
