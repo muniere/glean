@@ -1,6 +1,8 @@
 package pubsub
 
 import (
+	"errors"
+	"fmt"
 	"net/url"
 	"path"
 	"time"
@@ -8,6 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/muniere/glean/internal/pkg/jsonic"
+	"github.com/muniere/glean/internal/pkg/rpc"
 	"github.com/muniere/glean/internal/pkg/spider"
 	"github.com/muniere/glean/internal/pkg/task"
 )
@@ -41,16 +44,7 @@ func NewConsumer(queue *task.Queue, config ConsumerConfig) *Consumer {
 }
 
 func (m *Consumer) Spawn(config ConsumerConfig) {
-	action := func(job task.Job, meta task.Meta) error {
-		log.Info(jsonic.MustEncode(
-			dict{"job": job, "meta": meta},
-		))
-
-		uri, err := url.Parse(job.URI)
-		if err != nil {
-			return err
-		}
-
+	scrape := func(uri *url.URL) error {
 		info, err := spider.Index(uri, spider.IndexOptions{})
 		if err != nil {
 			return err
@@ -64,6 +58,42 @@ func (m *Consumer) Spawn(config ConsumerConfig) {
 			DryRun:      config.DryRun,
 			Interval:    500 * time.Millisecond,
 		})
+	}
+
+	clutch := func(uri *url.URL) error {
+		uris, err := spider.Walk(uri, spider.WalkOptions{})
+		if err != nil {
+			return err
+		}
+
+		return spider.Download(uris, spider.DownloadOptions{
+			Prefix:      config.Prefix,
+			Concurrency: config.Concurrency,
+			Blocking:    false,
+			Overwrite:   config.Overwrite,
+			DryRun:      config.DryRun,
+			Interval:    500 * time.Millisecond,
+		})
+	}
+
+	action := func(job task.Job, meta task.Meta) error {
+		log.Info(jsonic.MustEncode(
+			dict{"job": job, "meta": meta},
+		))
+
+		uri, err := url.Parse(job.URI)
+		if err != nil {
+			return err
+		}
+
+		switch job.Kind {
+		case rpc.Scrape:
+			return scrape(uri)
+		case rpc.Clutch:
+			return clutch(uri)
+		default:
+			return errors.New(fmt.Sprintf("operation not supported: %s", job.Kind))
+		}
 	}
 
 	recovery := func(err error) {

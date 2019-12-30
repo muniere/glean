@@ -8,13 +8,13 @@ import (
 	"github.com/muniere/glean/internal/pkg/rpc"
 )
 
-func Scrape(w *relay.Gateway, ctx *scope.Context) error {
-	var payload rpc.ScrapePayload
+func Clutch(w *relay.Gateway, ctx *scope.Context) error {
+	var payload rpc.ClutchPayload
 	if err := jsonic.Transcode(ctx.Request.Payload, &payload); err != nil {
 		return err
 	}
 
-	job, err := ctx.Queue.Enqueue(rpc.Scrape, payload.URI)
+	job, err := ctx.Queue.Enqueue(rpc.Clutch, payload.URI)
 	if err != nil {
 		return w.Error(box.Failure{
 			Message: err.Error(),

@@ -31,6 +31,7 @@ func NewProducer(queue *task.Queue, config ProducerConfig) *Producer {
 
 	s.Register(rpc.Status, action.Status)
 	s.Register(rpc.Scrape, action.Scrape)
+	s.Register(rpc.Clutch, action.Clutch)
 	s.Register(rpc.Cancel, action.Cancel)
 	s.RegisterDefault(action.Uncaught)
 

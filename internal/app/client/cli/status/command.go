@@ -2,6 +2,7 @@ package status
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -40,10 +41,15 @@ func run(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Println("id\tURI\tTimestamp")
+	puts("ID", "Kind", "URI", "Timestamp")
+
 	for _, job := range jobs {
-		fmt.Printf("%d\t%s\t%s\n", job.ID, job.URI, job.Timestamp)
+		puts(string(job.ID), job.Kind, job.URI, job.Timestamp.String())
 	}
 
 	return nil
+}
+
+func puts(values ...string) {
+	fmt.Println(strings.Join(values, "\t"))
 }
