@@ -1,10 +1,8 @@
-package spider
+package index
 
 import (
 	"net/url"
 )
-
-type dict map[string]interface{}
 
 type SiteInfo struct {
 	URI   *url.URL
