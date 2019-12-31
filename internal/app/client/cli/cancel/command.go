@@ -1,13 +1,11 @@
 package cancel
 
 import (
-	"errors"
 	"fmt"
-	"strconv"
-	"strings"
 
 	"github.com/spf13/cobra"
 
+	"github.com/muniere/glean/internal/app/client/cli/shared"
 	"github.com/muniere/glean/internal/pkg/jsonic"
 	"github.com/muniere/glean/internal/pkg/rpc"
 )
@@ -25,27 +23,18 @@ func NewCommand() *cobra.Command {
 }
 
 func run(cmd *cobra.Command, args []string) error {
-	var ids []int
-	var errs []string
-
-	for _, arg := range args {
-		id, err := strconv.Atoi(arg)
-		if err == nil {
-			ids = append(ids, id)
-		} else {
-			errs = append(errs, arg)
-		}
+	ctx, err := parse(args, cmd.Flags())
+	if err != nil {
+		return err
 	}
 
-	if len(errs) > 0 {
-		arg := strings.Join(errs, ", ")
-		msg := fmt.Sprintf("values must be ID numbers: %v", arg)
-		return errors.New(msg)
+	if err := shared.Prepare(ctx.options.Options); err != nil {
+		return err
 	}
 
-	agt := rpc.NewAgent(rpc.RemoteAddr, rpc.Port)
+	agt := rpc.NewAgent(ctx.options.Host, ctx.options.Port)
 
-	for _, id := range ids {
+	for _, id := range ctx.ids {
 		req := rpc.CancelRequest(id)
 		res, err := agt.Submit(&req)
 		if err != nil {

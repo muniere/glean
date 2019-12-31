@@ -1,4 +1,4 @@
-package context
+package shared
 
 import (
 	"github.com/muniere/glean/internal/pkg/rpc"

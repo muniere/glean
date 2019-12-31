@@ -110,9 +110,6 @@ func launch(ctx *context) error {
 	return nil
 }
 
-func pinfo() {
-}
-
 func wait(sig ...os.Signal) {
 	log.Info(jsonic.MustEncode(box.Dict{
 		"module": "root",

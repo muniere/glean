@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/muniere/glean/internal/app/client/cli/shared"
 	"github.com/muniere/glean/internal/pkg/jsonic"
 	"github.com/muniere/glean/internal/pkg/rpc"
 	"github.com/muniere/glean/internal/pkg/task"
@@ -20,11 +21,22 @@ func NewCommand() *cobra.Command {
 		},
 	}
 
+	assemble(cmd)
+
 	return cmd
 }
 
 func run(cmd *cobra.Command, args []string) error {
-	agt := rpc.NewAgent(rpc.RemoteAddr, rpc.Port)
+	ctx, err := parse(args, cmd.Flags())
+	if err != nil {
+		return err
+	}
+
+	if err := shared.Prepare(ctx.options.Options); err != nil {
+		return err
+	}
+
+	agt := rpc.NewAgent(ctx.options.Host, ctx.options.Port)
 
 	req := rpc.StatusRequest()
 	res, err := agt.Submit(&req)

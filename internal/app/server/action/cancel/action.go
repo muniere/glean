@@ -1,13 +1,13 @@
 package cancel
 
 import (
-	"github.com/muniere/glean/internal/app/server/action/context"
+	"github.com/muniere/glean/internal/app/server/action/shared"
 	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/jsonic"
 	"github.com/muniere/glean/internal/pkg/rpc"
 )
 
-func Perform(ctx *context.Context) error {
+func Perform(ctx *shared.Context) error {
 	var payload rpc.CancelPayload
 	if err := jsonic.Transcode(ctx.Request.Payload, &payload); err != nil {
 		return err

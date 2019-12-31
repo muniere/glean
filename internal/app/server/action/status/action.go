@@ -1,9 +1,9 @@
 package status
 
 import (
-	"github.com/muniere/glean/internal/app/server/action/context"
+	"github.com/muniere/glean/internal/app/server/action/shared"
 )
 
-func Perform(ctx *context.Context) error {
+func Perform(ctx *shared.Context) error {
 	return ctx.Gateway.Success(ctx.Queue.List())
 }
