@@ -1,0 +1,145 @@
+#!/bin/sh
+
+bindir=
+datadir=
+
+if [ -z "$bindir" ]; then
+    bindir=/usr/local/bin
+fi
+
+if [ -z "$datadir" ]; then
+    datadir=/usr/local/var/glean
+fi
+
+if ! [ -e "$datadir" ]; then
+    mkdir -p "$datadir"
+fi
+
+binfile="$bindir/gleand"
+pidfile="$datadir/$(hostname).pid"
+
+panic() {
+    echo "$@" >&2
+    exit 1
+}
+
+start() {
+    printf "Starting Glean server ... "
+
+    if ! [ -x "$binfile" ]; then
+        echo "ERROR!"
+        panic "Couldn't find Glean server at path: $binfile"
+    fi
+
+    if [ -s "$pidfile" ]; then
+        echo "ERROR!"
+        pid=$(cat "$pidfile")
+        panic "Already another process is running with PID $pid"
+    fi
+
+    $binfile --prefix=$datadir &
+    pid=$!
+    echo $pid > "$pidfile"
+    echo "done."
+
+    echo "Glean server started with PID $pid"
+}
+
+stop() {
+    if ! [ -s "$pidfile" ]; then
+        panic "Coudn't find PID file at path: $pidfile"
+    fi
+
+    pid=$(cat "$pidfile")
+    if ! (kill -0 $pid 2> /dev/null); then
+        panic "Glean server process $pid is not running"
+    fi
+
+    printf "Shutting down Glean server ..."
+
+    kill $pid
+
+    if [ $? -ne 0 ]; then
+        echo "ERROR!"
+        panic "Failed to shut down Glean server with PID $pid"
+    fi
+
+    rm $pidfile
+
+    if [ $? -ne 0 ]; then
+        echo "ERROR!"
+        panic "Failed to remove PID file. Remove manually at path: $pidfile"
+    fi
+
+    echo "done."
+
+    echo "Glean server successfully stopped."
+}
+
+status() {
+    if [ -s "$pidfile" ]; then
+        status_ok $@
+    else
+        status_ng $@
+    fi
+}
+
+status_ok() {
+    pid=$(cat "$pidfile")
+    if (kill -0 $pid 2> /dev/null); then
+        echo "Glean server is running with PID $pid"
+        exit 0
+    else
+        echo "Glean server is not running, but PID exists at path: $pidfile"
+        exit 1
+    fi
+}
+
+status_ng() {
+    pids=$(pgrep -d ' ' -f $binfile)
+    if [ -z $pids ]; then
+        echo "Glean server is not running"
+        exit 2
+    fi
+
+    len=$(echo $pids | wc -w)
+    if [ $len -gt 1 ]; then
+        echo "Multiple Glean server is running, but couldn't find any PID files: $pids"
+        exit 3
+    else
+        pid=$(echo $pids)
+        echo "Glean server is running with PID $pid but couldn't find PID file at path: $pidfile"
+        exit 4
+    fi
+}
+
+help() {
+    name=$(basename "$0")
+    echo "Usage: $name [start|stop|status]"
+    exit 1
+}
+
+main() {
+    action=$1
+    case "$action" in
+    "start")
+        start $@
+        ;;
+
+    "stop")
+        stop $@
+        ;;
+
+    "status")
+        status $@
+        ;;
+
+    *)
+        help $@
+        ;;
+    esac
+}
+
+main $@
+
+# vim: ft=bash sw=4 ts=4 sts=4
