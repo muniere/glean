@@ -11,6 +11,7 @@ import (
 	"github.com/muniere/glean/internal/app/server/pubsub"
 	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/lumber"
+	"github.com/muniere/glean/internal/pkg/signals"
 	"github.com/muniere/glean/internal/pkg/task"
 )
 
@@ -71,7 +72,7 @@ func run(cmd *cobra.Command, args []string) error {
 		Port:    ctx.options.port,
 	})
 
-	// kick
+	// start
 	err = consumer.Start()
 	if err != nil {
 		log.Fatal(err)
@@ -83,8 +84,24 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	// wait
-	wait(syscall.SIGINT, syscall.SIGTERM)
+	sigs := []os.Signal{
+		syscall.SIGINT,
+		syscall.SIGTERM,
+	}
+	lumber.Info(box.Dict{
+		"module": "root",
+		"action": "signal.wait",
+		"values": signals.Join(sigs, ", "),
+	})
 
+	sig := signals.Wait(sigs...)
+	lumber.Info(box.Dict{
+		"module": "root",
+		"action": "signal.recv",
+		"value":  sig.String(),
+	})
+
+	// stop
 	err = producer.Stop()
 	if err != nil {
 		log.Error(err)
