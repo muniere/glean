@@ -1,10 +1,15 @@
 #!/bin/sh
 
 bindir=
+logdir=
 datadir=
 
 if [ -z "$bindir" ]; then
     bindir=/usr/local/bin
+fi
+
+if [ -z "$logdir" ]; then
+    logdir=/usr/local/var/log/glean
 fi
 
 if [ -z "$datadir" ]; then
@@ -37,7 +42,7 @@ start() {
         panic "Already another process is running with PID $pid"
     fi
 
-    $binfile --prefix=$datadir &
+    $binfile --prefix=$datadir --log-dir=$logdir &
     pid=$!
     echo $pid > "$pidfile"
     echo "done."

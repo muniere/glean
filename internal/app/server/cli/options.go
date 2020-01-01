@@ -15,6 +15,7 @@ type options struct {
 	parallel    int
 	concurrency int
 	overwrite   bool
+	logDir      string
 	dryRun      bool
 	verbose     bool
 }
@@ -25,6 +26,7 @@ func assemble(cmd *cobra.Command) {
 	cmd.Flags().String("prefix", "", "Base directory to download files")
 	cmd.Flags().Int("parallel", task.Parallel, "The number of workers for download")
 	cmd.Flags().Int("concurrency", task.Concurrency, "Concurrency of download tasks per worker")
+	cmd.Flags().String("log-dir", "", "Path to log directory")
 	cmd.Flags().BoolP("dry-run", "n", false, "Do not perform actions actually")
 	cmd.Flags().BoolP("verbose", "v", false, "Show verbose messages")
 }
@@ -55,6 +57,11 @@ func decode(flags *pflag.FlagSet) (*options, error) {
 		return nil, err
 	}
 
+	logDir, err := flags.GetString("log-dir")
+	if err != nil {
+		return nil, err
+	}
+
 	dryRun, err := flags.GetBool("dry-run")
 	if err != nil {
 		return nil, err
@@ -71,6 +78,7 @@ func decode(flags *pflag.FlagSet) (*options, error) {
 		prefix:      prefix,
 		parallel:    parallel,
 		concurrency: concurrency,
+		logDir:      logDir,
 		dryRun:      dryRun,
 		verbose:     verbose,
 	}

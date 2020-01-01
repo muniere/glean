@@ -4,34 +4,31 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/muniere/glean/internal/pkg/box"
-	"github.com/muniere/glean/internal/pkg/jsonic"
+	"github.com/muniere/glean/internal/pkg/lumber"
 )
 
-func Debug(label string, action string, context box.Dict) {
-	log.Debug(jsonic.MustEncode(box.Dict{
+func Debug(action string, context box.Dict) {
+	lumber.Debug(box.Dict{
 		"module":  "spider",
-		"label":   label,
 		"action":  action,
 		"context": context,
-	}))
+	})
 }
 
-func Info(label string, action string, context box.Dict) {
-	log.Info(jsonic.MustEncode(box.Dict{
+func Info(action string, context box.Dict) {
+	lumber.Info(box.Dict{
 		"module":  "spider",
-		"label":   label,
 		"action":  action,
 		"context": context,
-	}))
+	})
 }
 
 func Result(value interface{}, context box.Dict) {
-	log.Info(jsonic.MustEncode(box.Dict{
+	lumber.Info(box.Dict{
 		"module":  "spider",
-		"label":   "result",
 		"result":  value,
 		"context": context,
-	}))
+	})
 }
 
 func Warn(args ...interface{}) {

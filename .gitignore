@@ -108,5 +108,6 @@ fabric.properties
 *.out
 
 .bin
+.log
 .var
 vendor/

@@ -51,18 +51,18 @@ func prepare(options Options) error {
 	ctx := box.Dict{"path": options.Prefix}
 
 	if options.DryRun {
-		log.Debug("skip", "mkdir", ctx)
+		log.Debug("mkdir.skip", ctx)
 		return nil
 	}
 
 	if sys.Exists(options.Prefix) {
-		log.Debug("skip", "mkdir", ctx)
+		log.Debug("mkdir.skip", ctx)
 		return nil
 	}
 
-	log.Debug("start", "mkdir", ctx)
+	log.Debug("mkdir.start", ctx)
 
-	defer log.Debug("finish", "mkdir", ctx)
+	defer log.Debug("mkdir.finish", ctx)
 
 	return os.MkdirAll(options.Prefix, 0755)
 }
@@ -140,12 +140,12 @@ func compose(cmd command, options Options) context {
 
 func test(context context, options Options) error {
 	if options.DryRun {
-		log.Info("skip", "download", context.dict())
+		log.Info("download.skip", context.dict())
 		return skipDownload
 	}
 
 	if !options.Overwrite && sys.Exists(context.path) {
-		log.Info("skip", "download", context.dict())
+		log.Info("download.skip", context.dict())
 		return skipDownload
 	}
 
@@ -153,25 +153,25 @@ func test(context context, options Options) error {
 }
 
 func fetch(context context, options Options) (*http.Response, error) {
-	log.Debug("start", "fetch", context.dict())
+	log.Debug("fetch.start", context.dict())
 
-	defer log.Debug("finish", "fetch", context.dict())
+	defer log.Debug("fetch.finish", context.dict())
 
 	return http.Get(context.uri.String())
 }
 
 func touch(context context, options Options) (*os.File, error) {
-	log.Debug("start", "touch", context.dict())
+	log.Debug("touch.start", context.dict())
 
-	defer log.Debug("finish", "touch", context.dict())
+	defer log.Debug("touch.finish", context.dict())
 
 	return os.Create(context.path)
 }
 
 func save(dst io.Writer, src io.Reader, context context, options Options) error {
-	log.Debug("start", "save", context.dict())
+	log.Debug("save.start", context.dict())
 
-	defer log.Debug("finish", "save", context.dict())
+	defer log.Debug("save.finish", context.dict())
 
 	_, err := io.Copy(dst, src)
 	return err

@@ -15,6 +15,7 @@ import (
 	"github.com/muniere/glean/internal/pkg/ascii"
 	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/jsonic"
+	"github.com/muniere/glean/internal/pkg/lumber"
 )
 
 var ConnectionClosed = errors.New("connection closed")
@@ -83,12 +84,11 @@ func (d *Daemon) Start() error {
 				continue
 			}
 			if err == ConnectionClosed {
-				log.Trace(jsonic.MustEncode(box.Dict{
+				lumber.Trace(box.Dict{
 					"module":  "daemon",
-					"action":  "accept",
-					"label":   "stop",
+					"action":  "abort",
 					"message": err.Error(),
-				}))
+				})
 				break
 			}
 
@@ -129,19 +129,17 @@ func (d *Daemon) poll() error {
 		}
 		e, ok := err.(net.Error)
 		if ok && e.Timeout() {
-			log.Trace(jsonic.MustEncode(box.Dict{
+			lumber.Trace(box.Dict{
 				"module": "daemon",
-				"action": "poll",
-				"label":  "Timeout",
-			}))
+				"action": "poll.timeout",
+			})
 			return
 		}
 		if err == io.EOF {
-			log.Trace(jsonic.MustEncode(box.Dict{
+			lumber.Trace(box.Dict{
 				"module": "daemon",
-				"action": "poll",
-				"label":  "EOF",
-			}))
+				"action": "poll.eof",
+			})
 			return
 		}
 		log.Error(err)

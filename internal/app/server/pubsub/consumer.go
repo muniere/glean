@@ -11,7 +11,7 @@ import (
 
 	"github.com/muniere/glean/internal/app/server/spider"
 	"github.com/muniere/glean/internal/pkg/box"
-	"github.com/muniere/glean/internal/pkg/jsonic"
+	"github.com/muniere/glean/internal/pkg/lumber"
 	"github.com/muniere/glean/internal/pkg/rpc"
 	"github.com/muniere/glean/internal/pkg/task"
 )
@@ -76,9 +76,10 @@ func (m *Consumer) Spawn(config ConsumerConfig) {
 	}
 
 	action := func(job task.Job, meta task.Meta) error {
-		log.Info(jsonic.MustEncode(
-			box.Dict{"job": job, "meta": meta},
-		))
+		lumber.Info(box.Dict{
+			"job":  job,
+			"meta": meta,
+		})
 
 		uri, err := url.Parse(job.URI)
 		if err != nil {
@@ -105,18 +106,18 @@ func (m *Consumer) Spawn(config ConsumerConfig) {
 }
 
 func (m *Consumer) Start() error {
-	log.Info(jsonic.MustEncode(box.Dict{
+	lumber.Info(box.Dict{
 		"module": "consumer",
-		"label":  "start",
-	}))
+		"action": "start",
+	})
 	return m.guild.Start()
 }
 
 func (m *Consumer) Stop() error {
-	log.Info(jsonic.MustEncode(box.Dict{
+	lumber.Info(box.Dict{
 		"module": "consumer",
-		"label":  "stop",
-	}))
+		"action": "stop",
+	})
 	return m.guild.Stop()
 }
 

@@ -35,9 +35,9 @@ func compose(cmd command, options Options) context {
 }
 
 func fetch(context context, options Options) (*xmlpath.Node, error) {
-	log.Debug("start", "fetch", context.dict())
+	log.Debug("fetch.start", context.dict())
 
-	defer log.Debug("finish", "fetch", context.dict())
+	defer log.Debug("fetch.finish", context.dict())
 
 	res, err := http.Get(context.uri.String())
 	if err != nil {
@@ -67,9 +67,9 @@ func fetch(context context, options Options) (*xmlpath.Node, error) {
 }
 
 func scrape(doc *xmlpath.Node, context context, options Options) (*SiteInfo, error) {
-	log.Debug("start", "scrape", context.dict())
+	log.Debug("scrape.start", context.dict())
 
-	defer log.Debug("finish", "scrape", context.dict())
+	defer log.Debug("scrape.finish", context.dict())
 
 	title := scrapeTitle(doc)
 
