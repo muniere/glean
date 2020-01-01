@@ -1,12 +1,12 @@
 package status
 
 import (
+	"os"
+
 	"github.com/spf13/cobra"
 
 	"github.com/muniere/glean/internal/app/client/cli/shared"
-	"github.com/muniere/glean/internal/pkg/jsonic"
 	"github.com/muniere/glean/internal/pkg/rpc"
-	"github.com/muniere/glean/internal/pkg/task"
 )
 
 func NewCommand() *cobra.Command {
@@ -41,20 +41,6 @@ func run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	var jobs []task.Job
-	if err := jsonic.Transcode(res.Payload, &jobs); err != nil {
-		return err
-	}
-
-	if len(jobs) == 0 {
-		return nil
-	}
-
-	printLine("ID", "Kind", "URI", "Prefix", "Timestamp")
-
-	for _, job := range jobs {
-		printLine(string(job.ID), job.Kind, job.URI, job.Prefix, job.Timestamp.String())
-	}
-
-	return nil
+	return output(os.Stdout, res)
 }
+

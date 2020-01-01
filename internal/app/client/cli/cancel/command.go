@@ -1,12 +1,11 @@
 package cancel
 
 import (
-	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
 	"github.com/muniere/glean/internal/app/client/cli/shared"
-	"github.com/muniere/glean/internal/pkg/jsonic"
 	"github.com/muniere/glean/internal/pkg/rpc"
 )
 
@@ -43,7 +42,9 @@ func run(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		fmt.Println(jsonic.MustEncode(res))
+		if err := output(os.Stdout, res); err != nil {
+			return err
+		}
 	}
 
 	return nil
