@@ -1,7 +1,6 @@
 package status
 
 import (
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	"github.com/muniere/glean/internal/app/client/cli/shared"
@@ -11,8 +10,8 @@ type options struct {
 	*shared.Options
 }
 
-func assemble(cmd *cobra.Command) {
-	shared.Assemble(cmd)
+func assemble(flags *pflag.FlagSet) {
+	shared.Assemble(flags)
 }
 
 func decode(flags *pflag.FlagSet) (*options, error) {

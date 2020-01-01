@@ -19,6 +19,8 @@ func NewCommand() *cobra.Command {
 		},
 	}
 
+	assemble(cmd.Flags())
+
 	return cmd
 }
 
@@ -35,7 +37,7 @@ func run(cmd *cobra.Command, args []string) error {
 	agt := rpc.NewAgent(ctx.options.Host, ctx.options.Port)
 
 	for _, id := range ctx.ids {
-		req := rpc.CancelRequest(id)
+		req := rpc.NewCancelRequest(id)
 		res, err := agt.Submit(&req)
 		if err != nil {
 			return err

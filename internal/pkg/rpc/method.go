@@ -16,7 +16,7 @@ const (
 //
 type StatusPayload struct{}
 
-func StatusRequest() Request {
+func NewStatusRequest() Request {
 	return Request{
 		Action:  Status,
 		Payload: StatusPayload{},
@@ -27,13 +27,17 @@ func StatusRequest() Request {
 // Scrape
 //
 type ScrapePayload struct {
-	URI string `json:"uri"`
+	URI    string `json:"uri"`
+	Prefix string `json:"prefix"`
 }
 
-func ScrapeRequest(uri *url.URL) Request {
+func NewScrapeRequest(uri *url.URL, prefix string) Request {
 	return Request{
-		Action:  Scrape,
-		Payload: ScrapePayload{URI: uri.String()},
+		Action: Scrape,
+		Payload: ScrapePayload{
+			URI:    uri.String(),
+			Prefix: prefix,
+		},
 	}
 }
 
@@ -41,13 +45,17 @@ func ScrapeRequest(uri *url.URL) Request {
 // Clutch
 //
 type ClutchPayload struct {
-	URI string `json:"uri"`
+	URI    string `json:"uri"`
+	Prefix string `json:"prefix"`
 }
 
-func ClutchRequest(uri *url.URL) Request {
+func NewClutchRequest(uri *url.URL, prefix string) Request {
 	return Request{
-		Action:  Clutch,
-		Payload: ScrapePayload{URI: uri.String()},
+		Action: Clutch,
+		Payload: ClutchPayload{
+			URI:    uri.String(),
+			Prefix: prefix,
+		},
 	}
 }
 
@@ -58,7 +66,7 @@ type CancelPayload struct {
 	ID int `json:"id"`
 }
 
-func CancelRequest(id int) Request {
+func NewCancelRequest(id int) Request {
 	return Request{
 		Action:  Cancel,
 		Payload: CancelPayload{ID: id},

@@ -19,7 +19,7 @@ func NewCommand() *cobra.Command {
 		},
 	}
 
-	assemble(cmd)
+	assemble(cmd.Flags())
 
 	return cmd
 }
@@ -37,7 +37,7 @@ func run(cmd *cobra.Command, args []string) error {
 	agt := rpc.NewAgent(ctx.options.Host, ctx.options.Port)
 
 	for _, uri := range ctx.uris {
-		req := rpc.ScrapeRequest(uri)
+		req := rpc.NewScrapeRequest(uri, ctx.options.Prefix)
 		res, err := agt.Submit(&req)
 		if err != nil {
 			return err

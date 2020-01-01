@@ -1,9 +1,6 @@
 package status
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/spf13/cobra"
 
 	"github.com/muniere/glean/internal/app/client/cli/shared"
@@ -21,7 +18,7 @@ func NewCommand() *cobra.Command {
 		},
 	}
 
-	assemble(cmd)
+	assemble(cmd.Flags())
 
 	return cmd
 }
@@ -38,7 +35,7 @@ func run(cmd *cobra.Command, args []string) error {
 
 	agt := rpc.NewAgent(ctx.options.Host, ctx.options.Port)
 
-	req := rpc.StatusRequest()
+	req := rpc.NewStatusRequest()
 	res, err := agt.Submit(&req)
 	if err != nil {
 		return err
@@ -53,15 +50,11 @@ func run(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	puts("ID", "Kind", "URI", "Timestamp")
+	printLine("ID", "Kind", "URI", "Prefix", "Timestamp")
 
 	for _, job := range jobs {
-		puts(string(job.ID), job.Kind, job.URI, job.Timestamp.String())
+		printLine(string(job.ID), job.Kind, job.URI, job.Prefix, job.Timestamp.String())
 	}
 
 	return nil
-}
-
-func puts(values ...string) {
-	fmt.Println(strings.Join(values, "\t"))
 }

@@ -1,7 +1,6 @@
 package shared
 
 import (
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	"github.com/muniere/glean/internal/pkg/rpc"
@@ -13,10 +12,10 @@ type Options struct {
 	Verbose bool
 }
 
-func Assemble(cmd *cobra.Command) {
-	cmd.Flags().String("host", rpc.RemoteAddr, "Server hostname")
-	cmd.Flags().Int("port", rpc.Port, "Server Port number")
-	cmd.Flags().BoolP("verbose", "v", false, "Show Verbose messages")
+func Assemble(flags *pflag.FlagSet) {
+	flags.String("host", rpc.RemoteAddr, "Server hostname")
+	flags.Int("port", rpc.Port, "Server Port number")
+	flags.BoolP("verbose", "v", false, "Show Verbose messages")
 }
 
 func Decode(flags *pflag.FlagSet) (*Options, error) {

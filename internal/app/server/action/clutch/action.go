@@ -13,7 +13,7 @@ func Perform(ctx *shared.Context) error {
 		return err
 	}
 
-	job, err := ctx.Queue.Enqueue(rpc.Clutch, payload.URI)
+	job, err := ctx.Queue.Enqueue(rpc.Clutch, payload.URI, payload.Prefix)
 	if err != nil {
 		return ctx.Gateway.Error(box.Failure{
 			Message: err.Error(),

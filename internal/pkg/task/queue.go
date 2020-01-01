@@ -34,7 +34,7 @@ func (q *Queue) List() []Job {
 	return append([]Job{}, q.jobs...)
 }
 
-func (q *Queue) Enqueue(kind string, uri string) (Job, error) {
+func (q *Queue) Enqueue(kind string, uri string, prefix string) (Job, error) {
 	q.mutex.Lock()
 
 	defer q.mutex.Unlock()
@@ -45,21 +45,22 @@ func (q *Queue) Enqueue(kind string, uri string) (Job, error) {
 		}
 	}
 
-	j := Job{
+	job := Job{
 		ID:        q.seq + 1,
 		Kind:      kind,
 		URI:       uri,
+		Prefix:    prefix,
 		Timestamp: time.Now(),
 	}
 
-	q.jobs = append(q.jobs, j)
-	q.seq = j.ID
+	q.jobs = append(q.jobs, job)
+	q.seq = job.ID
 
 	go func() {
 		q.channel <- true
 	}()
 
-	return j, nil
+	return job, nil
 }
 
 func (q *Queue) Dequeue() (Job, error) {

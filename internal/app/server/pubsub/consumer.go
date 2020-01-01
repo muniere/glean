@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"path"
+	"path/filepath"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -43,14 +44,29 @@ func NewConsumer(queue *task.Queue, config ConsumerConfig) *Consumer {
 }
 
 func (m *Consumer) Spawn(config ConsumerConfig) {
-	scrape := func(uri *url.URL) error {
+	scrape := func(uri *url.URL, prefix string) error {
 		info, err := spider.Index(uri, spider.IndexOptions{})
 		if err != nil {
 			return err
 		}
 
+		var prefixer string
+		if len(prefix) > 0 {
+			if filepath.IsAbs(prefix) {
+				prefixer = prefix
+			} else {
+				prefixer = path.Join(config.Prefix, prefix)
+			}
+		} else {
+			if len(info.Title) > 0 {
+				prefixer = path.Join(config.Prefix, info.Title)
+			} else {
+				prefixer = path.Join(config.Prefix, url.QueryEscape(uri.String()))
+			}
+		}
+
 		return spider.Download(info.Links, spider.DownloadOptions{
-			Prefix:      path.Join(config.Prefix, info.Title),
+			Prefix:      prefixer,
 			Concurrency: config.Concurrency,
 			Blocking:    false,
 			Overwrite:   config.Overwrite,
@@ -59,14 +75,25 @@ func (m *Consumer) Spawn(config ConsumerConfig) {
 		})
 	}
 
-	clutch := func(uri *url.URL) error {
+	clutch := func(uri *url.URL, prefix string) error {
 		uris, err := spider.Walk(uri, spider.WalkOptions{})
 		if err != nil {
 			return err
 		}
 
+		var prefixer string
+		if len(prefix) > 0 {
+			if filepath.IsAbs(prefix) {
+				prefixer = prefix
+			} else {
+				prefixer = path.Join(config.Prefix, prefix)
+			}
+		} else {
+			prefixer = path.Join(config.Prefix, url.QueryEscape(uri.String()))
+		}
+
 		return spider.Download(uris, spider.DownloadOptions{
-			Prefix:      config.Prefix,
+			Prefix:      prefixer,
 			Concurrency: config.Concurrency,
 			Blocking:    false,
 			Overwrite:   config.Overwrite,
@@ -88,9 +115,9 @@ func (m *Consumer) Spawn(config ConsumerConfig) {
 
 		switch job.Kind {
 		case rpc.Scrape:
-			return scrape(uri)
+			return scrape(uri, job.Prefix)
 		case rpc.Clutch:
-			return clutch(uri)
+			return clutch(uri, job.Prefix)
 		default:
 			return errors.New(fmt.Sprintf("operation not supported: %s", job.Kind))
 		}
