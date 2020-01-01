@@ -16,15 +16,16 @@ func wait(sig ...os.Signal) {
 		"values": join(sig, ", "),
 	})
 
+	ch := make(chan os.Signal)
+	signal.Notify(ch, sig...)
+	s := <-ch
+
 	defer lumber.Info(box.Dict{
 		"module": "root",
 		"action": "signal.recv",
-		"values": join(sig, ", "),
+		"value":  s.String(),
 	})
 
-	ch := make(chan os.Signal)
-	signal.Notify(ch, sig...)
-	<-ch
 }
 
 func join(sig []os.Signal, sep string) string {
