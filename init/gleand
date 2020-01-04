@@ -4,6 +4,33 @@ bindir=
 logdir=
 datadir=
 
+# load configs
+for f in /usr/local/etc/gleand.conf $HOME/.gleand.conf; do 
+    if ! [ -r "$f" ]; then
+        continue
+    fi
+
+    while IFS='=' read -r k v; do
+        # skip comment
+        if [[ $k =~ ^\ *# ]]; then
+            continue
+        fi
+
+        # skip empty value
+        if [[ -z $v ]]; then 
+            continue
+        fi
+
+        v="${v%%\#*}"    # Del in line right comments
+        v="${v%\"*}"     # Del opening string quotes
+        v="${v#\"*}"     # Del closing string quotes
+        v=$(eval echo "$v" | xargs)
+        k=$(eval echo "$k" | xargs)
+        declare $k="$v"
+    done < "$f"
+done
+
+# fallback with defaults
 if [ -z "$bindir" ]; then
     bindir=/usr/local/bin
 fi
@@ -20,9 +47,11 @@ if ! [ -e "$datadir" ]; then
     mkdir -p "$datadir"
 fi
 
+# define globals
 binfile="$bindir/gleand"
 pidfile="$datadir/$(hostname).pid"
 
+# helper functions
 panic() {
     echo "$@" >&2
     exit 1
