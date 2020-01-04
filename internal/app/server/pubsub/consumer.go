@@ -31,19 +31,19 @@ type ConsumerConfig struct {
 }
 
 func NewConsumer(queue *task.Queue, config ConsumerConfig) *Consumer {
-	s := &Consumer{
+	x := &Consumer{
 		guild: task.NewGuild(),
 		queue: queue,
 	}
 
 	for i := 0; i < config.Parallel; i++ {
-		s.Spawn(config)
+		x.Spawn(config)
 	}
 
-	return s
+	return x
 }
 
-func (m *Consumer) Spawn(config ConsumerConfig) {
+func (x *Consumer) Spawn(config ConsumerConfig) {
 	scrape := func(uri *url.URL, prefix string) error {
 		info, err := spider.Index(uri, spider.IndexOptions{})
 		if err != nil {
@@ -129,25 +129,25 @@ func (m *Consumer) Spawn(config ConsumerConfig) {
 
 	interval := 5 * time.Second
 
-	m.guild.Spawn(m.queue, action, recovery, interval)
+	x.guild.Spawn(x.queue, action, recovery, interval)
 }
 
-func (m *Consumer) Start() error {
+func (x *Consumer) Start() error {
 	lumber.Info(box.Dict{
 		"module": "consumer",
 		"action": "start",
 	})
-	return m.guild.Start()
+	return x.guild.Start()
 }
 
-func (m *Consumer) Stop() error {
+func (x *Consumer) Stop() error {
 	lumber.Info(box.Dict{
 		"module": "consumer",
 		"action": "stop",
 	})
-	return m.guild.Stop()
+	return x.guild.Stop()
 }
 
-func (m *Consumer) Wait() {
-	m.guild.Wait()
+func (x *Consumer) Wait() {
+	x.guild.Wait()
 }
