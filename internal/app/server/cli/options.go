@@ -11,10 +11,10 @@ import (
 type options struct {
 	address     string
 	port        int
-	prefix      string
 	parallel    int
 	concurrency int
 	overwrite   bool
+	dataDir     string
 	logDir      string
 	dryRun      bool
 	verbose     bool
@@ -23,9 +23,9 @@ type options struct {
 func assemble(cmd *cobra.Command) {
 	cmd.Flags().String("address", rpc.LocalAddr, "Address to bind")
 	cmd.Flags().Int("port", rpc.Port, "Port to bind")
-	cmd.Flags().String("prefix", "", "Base directory to download files")
 	cmd.Flags().Int("parallel", task.Parallel, "The number of workers for download")
 	cmd.Flags().Int("concurrency", task.Concurrency, "Concurrency of download tasks per worker")
+	cmd.Flags().String("data-dir", "", "Base directory to download files")
 	cmd.Flags().String("log-dir", "", "Path to log directory")
 	cmd.Flags().BoolP("dry-run", "n", false, "Do not perform actions actually")
 	cmd.Flags().BoolP("verbose", "v", false, "Show verbose messages")
@@ -42,17 +42,17 @@ func decode(flags *pflag.FlagSet) (*options, error) {
 		return nil, err
 	}
 
-	prefix, err := flags.GetString("prefix")
-	if err != nil {
-		return nil, err
-	}
-
 	parallel, err := flags.GetInt("parallel")
 	if err != nil {
 		return nil, err
 	}
 
 	concurrency, err := flags.GetInt("concurrency")
+	if err != nil {
+		return nil, err
+	}
+
+	dataDir, err := flags.GetString("data-dir")
 	if err != nil {
 		return nil, err
 	}
@@ -75,9 +75,9 @@ func decode(flags *pflag.FlagSet) (*options, error) {
 	opts := &options{
 		address:     address,
 		port:        port,
-		prefix:      prefix,
 		parallel:    parallel,
 		concurrency: concurrency,
+		dataDir:     dataDir,
 		logDir:      logDir,
 		dryRun:      dryRun,
 		verbose:     verbose,

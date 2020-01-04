@@ -95,7 +95,7 @@ func translate(options *options) pubsub.Config {
 	return pubsub.Config{
 		Address:     options.address,
 		Port:        options.port,
-		Prefix:      options.prefix,
+		Prefix:      options.dataDir,
 		Parallel:    options.parallel,
 		Concurrency: options.concurrency,
 		Overwrite:   options.overwrite,

@@ -71,7 +71,7 @@ start() {
         panic "Already another process is running with PID $pid"
     fi
 
-    $binfile --prefix=$datadir --log-dir=$logdir &
+    $binfile --data-dir=$datadir --log-dir=$logdir &
     pid=$!
     echo $pid > "$pidfile"
     echo "done."
