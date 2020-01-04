@@ -1,4 +1,4 @@
-package pubsub
+package producer
 
 import (
 	"net"
@@ -16,14 +16,14 @@ type Producer struct {
 	queue  *task.Queue
 }
 
-type ProducerConfig struct {
+type Config struct {
 	Address string
 	Port    int
 }
 
 type Proc func(*action.Context) error
 
-func NewProducer(queue *task.Queue, config ProducerConfig) *Producer {
+func NewProducer(queue *task.Queue, config Config) *Producer {
 	x := &Producer{
 		daemon: rpc.NewDaemon(config.Address, config.Port),
 		queue:  queue,

@@ -1,10 +1,18 @@
-package pubsub
+package manager
 
 import (
 	"github.com/muniere/glean/internal/app/server/action"
+	 "github.com/muniere/glean/internal/app/server/pubsub/consumer"
+	 "github.com/muniere/glean/internal/app/server/pubsub/producer"
 	"github.com/muniere/glean/internal/pkg/rpc"
 	"github.com/muniere/glean/internal/pkg/task"
 )
+
+type Manager struct {
+	queue    *task.Queue
+	producer *producer.Producer
+	consumer *consumer.Consumer
+}
 
 type Config struct {
 	Address     string `json:"address"`
@@ -18,10 +26,10 @@ type Config struct {
 	Verbose     bool   `json:"verbose"`
 }
 
-func NewSupervisor(config Config) *Supervisor {
-	queue := task.NewQueue()
+func NewManager(config Config) *Manager {
+	q := task.NewQueue()
 
-	consumer := NewConsumer(queue, ConsumerConfig{
+	c := consumer.NewConsumer(q, consumer.Config{
 		Parallel:    config.Parallel,
 		Concurrency: config.Concurrency,
 		Prefix:      config.Prefix,
@@ -29,43 +37,37 @@ func NewSupervisor(config Config) *Supervisor {
 		DryRun:      config.DryRun,
 	})
 
-	producer := NewProducer(queue, ProducerConfig{
+	p := producer.NewProducer(q, producer.Config{
 		Address: config.Address,
 		Port:    config.Port,
 	})
 
-	producer.Register(rpc.Config, func(c *action.Context) error {
+	p.Register(rpc.Config, func(c *action.Context) error {
 		return c.Gateway.Success(config)
 	})
 
-	return &Supervisor{
-		queue:    queue,
-		producer: producer,
-		consumer: consumer,
+	return &Manager{
+		queue:    q,
+		producer: p,
+		consumer: c,
 	}
 }
 
-type Supervisor struct {
-	queue    *task.Queue
-	producer *Producer
-	consumer *Consumer
-}
-
-func (s *Supervisor) Start() error {
-	if err := s.consumer.Start(); err != nil {
+func (x *Manager) Start() error {
+	if err := x.consumer.Start(); err != nil {
 		return err
 	}
-	if err := s.producer.Start(); err != nil {
+	if err := x.producer.Start(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Supervisor) Stop() error {
-	if err := s.consumer.Stop(); err != nil {
+func (x *Manager) Stop() error {
+	if err := x.consumer.Stop(); err != nil {
 		return err
 	}
-	if err := s.producer.Stop(); err != nil {
+	if err := x.producer.Stop(); err != nil {
 		return err
 	}
 	return nil

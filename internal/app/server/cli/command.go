@@ -56,10 +56,10 @@ func run(cmd *cobra.Command, args []string) error {
 	})
 
 	// build
-	supervisor := pubsub.NewSupervisor(translate(ctx.options))
+	manager := pubsub.NewManager(translate(ctx.options))
 
 	// start
-	err = supervisor.Start()
+	err = manager.Start()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -83,7 +83,7 @@ func run(cmd *cobra.Command, args []string) error {
 	})
 
 	// stop
-	err = supervisor.Stop()
+	err = manager.Stop()
 	if err != nil {
 		log.Error(err)
 	}

@@ -1,4 +1,4 @@
-package pubsub
+package consumer
 
 import (
 	"errors"
@@ -22,7 +22,7 @@ type Consumer struct {
 	queue *task.Queue
 }
 
-type ConsumerConfig struct {
+type Config struct {
 	Prefix      string
 	Parallel    int
 	Concurrency int
@@ -30,7 +30,7 @@ type ConsumerConfig struct {
 	DryRun      bool
 }
 
-func NewConsumer(queue *task.Queue, config ConsumerConfig) *Consumer {
+func NewConsumer(queue *task.Queue, config Config) *Consumer {
 	x := &Consumer{
 		guild: task.NewGuild(),
 		queue: queue,
@@ -43,7 +43,7 @@ func NewConsumer(queue *task.Queue, config ConsumerConfig) *Consumer {
 	return x
 }
 
-func (x *Consumer) Spawn(config ConsumerConfig) {
+func (x *Consumer) Spawn(config Config) {
 	scrape := func(uri *url.URL, prefix string) error {
 		info, err := spider.Index(uri, spider.IndexOptions{})
 		if err != nil {
