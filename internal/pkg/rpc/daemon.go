@@ -26,13 +26,16 @@ type Daemon struct {
 	Window       int
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
-	delegate     net.Listener
-	procs        map[string]Proc
+	listener     net.Listener
+	actions      map[string]Proc
 	fallback     Proc
+	preHooks     []Hook
+	postHooks    []Hook
 	group        *sync.WaitGroup
 }
 
-type Proc func(net.Conn, []byte) error
+type Hook func(*Request)
+type Proc func(*Request, *Gateway) error
 
 func NewDaemon(addr string, port int) *Daemon {
 	return &Daemon{
@@ -41,19 +44,29 @@ func NewDaemon(addr string, port int) *Daemon {
 		Window:       1024,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
-		delegate:     nil,
-		procs:        map[string]Proc{},
+		listener:     nil,
+		actions:      map[string]Proc{},
 		fallback:     nil,
+		preHooks:     []Hook{},
+		postHooks:    []Hook{},
 		group:        &sync.WaitGroup{},
 	}
 }
 
+func (d *Daemon) PreHook(hook Hook) {
+	d.preHooks = append(d.preHooks, hook)
+}
+
+func (d *Daemon) PostHook(hook Hook) {
+	d.postHooks = append(d.postHooks, hook)
+}
+
 func (d *Daemon) Register(key string, proc Proc) {
-	d.procs[key] = proc
+	d.actions[key] = proc
 }
 
 func (d *Daemon) Unregister(key string) {
-	delete(d.procs, key)
+	delete(d.actions, key)
 }
 
 func (d *Daemon) RegisterDefault(proc Proc) {
@@ -71,7 +84,7 @@ func (d *Daemon) Start() error {
 		return err
 	}
 
-	d.delegate = listener
+	d.listener = listener
 	d.group.Add(1)
 
 	go func() {
@@ -101,7 +114,7 @@ func (d *Daemon) Start() error {
 }
 
 func (d *Daemon) Stop() error {
-	return d.delegate.Close()
+	return d.listener.Close()
 }
 
 func (d *Daemon) Wait() {
@@ -109,7 +122,7 @@ func (d *Daemon) Wait() {
 }
 
 func (d *Daemon) poll() error {
-	con, err := d.delegate.Accept()
+	con, err := d.listener.Accept()
 	if err != nil {
 		// see https://github.com/golang/net/blob/master/http2/server.go#L676-L679
 		if strings.Contains(err.Error(), "use of closed network connection") {
@@ -160,18 +173,37 @@ func (d *Daemon) handle(con net.Conn) error {
 
 	req = req[0 : len(req)-1]
 
-	var msg Request
-	if err := jsonic.Unmarshal(req, &msg); err != nil {
+	var request Request
+	if err := jsonic.Unmarshal(req, &request); err != nil {
 		return err
 	}
 
 	// response
-	proc, ok := d.procs[msg.Action]
+	for _, hook := range d.preHooks {
+		hook(&request)
+	}
+
+	if err := d.perform(&request, NewGateway(con)); err != nil {
+		return err
+	}
+
+	for _, hook := range d.postHooks {
+		hook(&request)
+	}
+
+	return nil
+}
+
+func (d *Daemon) perform(request *Request, gateway *Gateway) error {
+	action, ok := d.actions[request.Action]
+
 	if ok {
-		return proc(con, req)
+		return action(request, gateway)
 	}
+
 	if d.fallback != nil {
-		return d.fallback(con, req)
+		return d.fallback(request, gateway)
 	}
-	return errors.New(fmt.Sprintf("unsupported type: %v", msg.Action))
+
+	return errors.New(fmt.Sprintf("unsupported aciton: %s", request.Action))
 }

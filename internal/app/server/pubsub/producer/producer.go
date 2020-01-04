@@ -1,11 +1,8 @@
 package producer
 
 import (
-	"net"
-
 	"github.com/muniere/glean/internal/app/server/action"
 	"github.com/muniere/glean/internal/pkg/box"
-	"github.com/muniere/glean/internal/pkg/jsonic"
 	"github.com/muniere/glean/internal/pkg/lumber"
 	"github.com/muniere/glean/internal/pkg/rpc"
 	"github.com/muniere/glean/internal/pkg/task"
@@ -59,29 +56,17 @@ func (x *Producer) Wait() {
 }
 
 func (x *Producer) Register(key string, proc Proc) {
-	x.daemon.Register(key, func(con net.Conn, req []byte) error {
-		var request rpc.Request
-		if err := jsonic.Unmarshal(req, &request); err != nil {
-			return err
-		}
-
-		gateway := rpc.NewGateway(con)
-		context := action.NewContext(&request, gateway, x.queue)
-
-		return proc(context)
+	x.daemon.Register(key, func(request *rpc.Request, gateway *rpc.Gateway) error {
+		return proc(
+			action.NewContext(request, gateway, x.queue),
+		)
 	})
 }
 
 func (x *Producer) RegisterDefault(proc Proc) {
-	x.daemon.RegisterDefault(func(con net.Conn, req []byte) error {
-		var request rpc.Request
-		if err := jsonic.Unmarshal(req, &request); err != nil {
-			return err
-		}
-
-		gateway := rpc.NewGateway(con)
-		context := action.NewContext(&request, gateway, x.queue)
-
-		return proc(context)
+	x.daemon.RegisterDefault(func(request *rpc.Request, gateway *rpc.Gateway) error {
+		return proc(
+			action.NewContext(request, gateway, x.queue),
+		)
 	})
 }
