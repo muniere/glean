@@ -12,7 +12,6 @@ import (
 	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/lumber"
 	"github.com/muniere/glean/internal/pkg/signals"
-	"github.com/muniere/glean/internal/pkg/task"
 )
 
 const (
@@ -57,28 +56,10 @@ func run(cmd *cobra.Command, args []string) error {
 	})
 
 	// build
-	queue := task.NewQueue()
-
-	consumer := pubsub.NewConsumer(queue, pubsub.ConsumerConfig{
-		Parallel:    ctx.options.parallel,
-		Concurrency: ctx.options.concurrency,
-		Prefix:      ctx.options.prefix,
-		Overwrite:   ctx.options.overwrite,
-		DryRun:      ctx.options.dryRun,
-	})
-
-	producer := pubsub.NewProducer(queue, pubsub.ProducerConfig{
-		Address: ctx.options.address,
-		Port:    ctx.options.port,
-	})
+	supervisor := pubsub.NewSupervisor(translate(ctx.options))
 
 	// start
-	err = consumer.Start()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = producer.Start()
+	err = supervisor.Start()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -102,15 +83,24 @@ func run(cmd *cobra.Command, args []string) error {
 	})
 
 	// stop
-	err = producer.Stop()
-	if err != nil {
-		log.Error(err)
-	}
-
-	err = consumer.Stop()
+	err = supervisor.Stop()
 	if err != nil {
 		log.Error(err)
 	}
 
 	return nil
+}
+
+func translate(options *options) pubsub.Config {
+	return pubsub.Config{
+		Address:     options.address,
+		Port:        options.port,
+		Prefix:      options.prefix,
+		Parallel:    options.parallel,
+		Concurrency: options.concurrency,
+		Overwrite:   options.overwrite,
+		LogDir:      options.logDir,
+		DryRun:      options.dryRun,
+		Verbose:     options.verbose,
+	}
 }
