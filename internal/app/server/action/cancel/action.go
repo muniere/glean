@@ -4,6 +4,7 @@ import (
 	"github.com/muniere/glean/internal/app/server/action/shared"
 	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/jsonic"
+	"github.com/muniere/glean/internal/pkg/lumber"
 	"github.com/muniere/glean/internal/pkg/rpc"
 )
 
@@ -19,6 +20,12 @@ func Perform(ctx *shared.Context) error {
 			Message: err.Error(),
 		})
 	}
+
+	lumber.Info(box.Dict{
+		"module": "producer",
+		"action": "cancel",
+		"job":    job,
+	})
 
 	return ctx.Gateway.Success(job)
 }

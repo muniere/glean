@@ -56,6 +56,11 @@ func prepareForFileLog(options *options) error {
 
 	log.SetOutput(ioutil.Discard)
 
+	err = prepareCmdFileLog(options)
+	if err != nil {
+		return err
+	}
+
 	err = prepareOutFileLog(options)
 	if err != nil {
 		return err
@@ -66,6 +71,20 @@ func prepareForFileLog(options *options) error {
 		return err
 	}
 
+	return nil
+}
+
+func prepareCmdFileLog(options *options) error {
+	file, err := os.OpenFile(
+		path.Join(options.logDir, cmdLogName), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644,
+	)
+	if err != nil {
+		return err
+	}
+
+	log.AddHook(lumber.NewFileHookWithFilter(file, log.AllLevels, func(entry *log.Entry) bool {
+		return entry.Data["command"] != nil
+	}))
 	return nil
 }
 

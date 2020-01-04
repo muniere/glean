@@ -104,8 +104,10 @@ func (x *Consumer) Spawn(config Config) {
 
 	action := func(job task.Job, meta task.Meta) error {
 		lumber.Info(box.Dict{
-			"job":  job,
-			"meta": meta,
+			"module": "consumer",
+			"action": "consume",
+			"job":    job,
+			"meta":   meta,
 		})
 
 		uri, err := url.Parse(job.URI)

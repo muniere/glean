@@ -15,6 +15,7 @@ import (
 )
 
 const (
+	cmdLogName = "glean.cmd.log"
 	outLogName = "glean.out.log"
 	errLogName = "glean.err.log"
 )

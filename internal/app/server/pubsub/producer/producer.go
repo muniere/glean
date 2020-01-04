@@ -18,6 +18,7 @@ type Config struct {
 	Port    int
 }
 
+type Hook func(*rpc.Request)
 type Proc func(*action.Context) error
 
 func NewProducer(queue *task.Queue, config Config) *Producer {
@@ -31,6 +32,14 @@ func NewProducer(queue *task.Queue, config Config) *Producer {
 	x.Register(rpc.Clutch, action.Clutch)
 	x.Register(rpc.Cancel, action.Cancel)
 	x.RegisterDefault(action.Fallback)
+
+	x.PreHook(func(request *rpc.Request) {
+		lumber.Info(box.Dict{
+			"module": "producer",
+			"action": "receive",
+			"command": request.Action,
+		})
+	})
 
 	return x
 }
@@ -53,6 +62,18 @@ func (x *Producer) Stop() error {
 
 func (x *Producer) Wait() {
 	x.daemon.Wait()
+}
+
+func (x *Producer) PreHook(hook Hook) {
+	x.daemon.PreHook(func(request *rpc.Request) {
+		hook(request)
+	})
+}
+
+func (x *Producer) PostHook(hook Hook) {
+	x.daemon.PostHook(func(request *rpc.Request) {
+		hook(request)
+	})
 }
 
 func (x *Producer) Register(key string, proc Proc) {
