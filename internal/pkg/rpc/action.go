@@ -9,6 +9,7 @@ const (
 	Scrape = "scrape"
 	Clutch = "clutch"
 	Cancel = "cancel"
+	Config = "config"
 )
 
 //
@@ -70,5 +71,17 @@ func NewCancelRequest(id int) Request {
 	return Request{
 		Action:  Cancel,
 		Payload: CancelPayload{ID: id},
+	}
+}
+
+//
+// Config
+//
+type ConfigPayload struct{}
+
+func NewConfigRequest() Request {
+	return Request{
+		Action:  Config,
+		Payload: ConfigPayload{},
 	}
 }

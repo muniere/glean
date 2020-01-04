@@ -1,6 +1,8 @@
 package pubsub
 
 import (
+	"github.com/muniere/glean/internal/app/server/action"
+	"github.com/muniere/glean/internal/pkg/rpc"
 	"github.com/muniere/glean/internal/pkg/task"
 )
 
@@ -30,6 +32,10 @@ func NewSupervisor(config Config) *Supervisor {
 	producer := NewProducer(queue, ProducerConfig{
 		Address: config.Address,
 		Port:    config.Port,
+	})
+
+	producer.Register(rpc.Config, func(c *action.Context) error {
+		return c.Gateway.Success(config)
 	})
 
 	return &Supervisor{
