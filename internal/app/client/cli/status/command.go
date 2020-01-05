@@ -43,4 +43,3 @@ func run(cmd *cobra.Command, args []string) error {
 
 	return output(os.Stdout, res)
 }
-

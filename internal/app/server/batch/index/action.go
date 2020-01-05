@@ -11,7 +11,7 @@ import (
 	"golang.org/x/net/html/charset"
 	"gopkg.in/xmlpath.v2"
 
-	"github.com/muniere/glean/internal/app/server/spider/log"
+	"github.com/muniere/glean/internal/app/server/batch/log"
 	"github.com/muniere/glean/internal/pkg/urls"
 )
 

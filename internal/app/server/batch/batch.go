@@ -1,9 +1,9 @@
-package spider
+package batch
 
 import (
-	"github.com/muniere/glean/internal/app/server/spider/download"
-	"github.com/muniere/glean/internal/app/server/spider/index"
-	"github.com/muniere/glean/internal/app/server/spider/walk"
+	"github.com/muniere/glean/internal/app/server/batch/download"
+	"github.com/muniere/glean/internal/app/server/batch/index"
+	"github.com/muniere/glean/internal/app/server/batch/walk"
 )
 
 type (

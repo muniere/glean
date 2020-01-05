@@ -9,7 +9,7 @@ import (
 
 func Debug(action string, context box.Dict) {
 	lumber.Debug(box.Dict{
-		"module":  "spider",
+		"module":  "batch",
 		"action":  action,
 		"context": context,
 	})
@@ -17,7 +17,7 @@ func Debug(action string, context box.Dict) {
 
 func Info(action string, context box.Dict) {
 	lumber.Info(box.Dict{
-		"module":  "spider",
+		"module":  "batch",
 		"action":  action,
 		"context": context,
 	})
@@ -25,7 +25,7 @@ func Info(action string, context box.Dict) {
 
 func Result(value interface{}, context box.Dict) {
 	lumber.Info(box.Dict{
-		"module":  "spider",
+		"module":  "batch",
 		"result":  value,
 		"context": context,
 	})

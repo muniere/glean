@@ -10,7 +10,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/muniere/glean/internal/app/server/spider"
+	"github.com/muniere/glean/internal/app/server/batch"
 	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/lumber"
 	"github.com/muniere/glean/internal/pkg/rpc"
@@ -45,7 +45,7 @@ func NewConsumer(queue *task.Queue, config Config) *Consumer {
 
 func (x *Consumer) Spawn(config Config) {
 	scrape := func(uri *url.URL, prefix string) error {
-		info, err := spider.Index(uri, spider.IndexOptions{})
+		info, err := batch.Index(uri, batch.IndexOptions{})
 		if err != nil {
 			return err
 		}
@@ -65,7 +65,7 @@ func (x *Consumer) Spawn(config Config) {
 			}
 		}
 
-		return spider.Download(info.Links, spider.DownloadOptions{
+		return batch.Download(info.Links, batch.DownloadOptions{
 			Prefix:      prefixer,
 			Concurrency: config.Concurrency,
 			Blocking:    false,
@@ -76,7 +76,7 @@ func (x *Consumer) Spawn(config Config) {
 	}
 
 	clutch := func(uri *url.URL, prefix string) error {
-		uris, err := spider.Walk(uri, spider.WalkOptions{})
+		uris, err := batch.Walk(uri, batch.WalkOptions{})
 		if err != nil {
 			return err
 		}
@@ -92,7 +92,7 @@ func (x *Consumer) Spawn(config Config) {
 			prefixer = path.Join(config.Prefix, url.QueryEscape(uri.String()))
 		}
 
-		return spider.Download(uris, spider.DownloadOptions{
+		return batch.Download(uris, batch.DownloadOptions{
 			Prefix:      prefixer,
 			Concurrency: config.Concurrency,
 			Blocking:    false,

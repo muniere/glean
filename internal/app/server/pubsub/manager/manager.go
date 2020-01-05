@@ -2,8 +2,8 @@ package manager
 
 import (
 	"github.com/muniere/glean/internal/app/server/action"
-	 "github.com/muniere/glean/internal/app/server/pubsub/consumer"
-	 "github.com/muniere/glean/internal/app/server/pubsub/producer"
+	"github.com/muniere/glean/internal/app/server/pubsub/consumer"
+	"github.com/muniere/glean/internal/app/server/pubsub/producer"
 	"github.com/muniere/glean/internal/pkg/rpc"
 	"github.com/muniere/glean/internal/pkg/task"
 )

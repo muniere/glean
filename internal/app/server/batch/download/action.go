@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/muniere/glean/internal/app/server/spider/log"
+	"github.com/muniere/glean/internal/app/server/batch/log"
 	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/sys"
 )
