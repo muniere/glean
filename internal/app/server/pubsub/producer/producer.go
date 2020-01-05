@@ -1,6 +1,8 @@
 package producer
 
 import (
+	log "github.com/sirupsen/logrus"
+
 	"github.com/muniere/glean/internal/app/server/action"
 	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/lumber"
@@ -18,8 +20,10 @@ type Config struct {
 	Port    int
 }
 
-type Hook func(*rpc.Request)
 type Proc func(*action.Context) error
+type RequestHook func(*rpc.Request)
+type ResponseHook func(*rpc.Request)
+type ErrorHook func(error)
 
 func NewProducer(queue *task.Queue, config Config) *Producer {
 	x := &Producer{
@@ -33,12 +37,45 @@ func NewProducer(queue *task.Queue, config Config) *Producer {
 	x.Register(rpc.Cancel, action.Cancel)
 	x.RegisterDefault(action.Fallback)
 
-	x.PreHook(func(request *rpc.Request) {
+	x.OnRequest(func(request *rpc.Request) {
 		lumber.Info(box.Dict{
-			"module": "producer",
-			"action": "receive",
+			"module":  "producer",
+			"action":  "receive",
 			"command": request.Action,
 		})
+	})
+
+	x.OnError(rpc.Accept, func(err error) {
+		if rpc.IsClosedConn(err) {
+			lumber.Trace(box.Dict{
+				"module":  "daemon",
+				"action":  "abort",
+				"message": err.Error(),
+			})
+			return
+		}
+
+		log.Error(err)
+	})
+
+	x.OnError(rpc.Handle, func(err error) {
+		if rpc.IsTimeout(err) {
+			lumber.Trace(box.Dict{
+				"module": "daemon",
+				"action": "poll.timeout",
+			})
+			return
+		}
+
+		if rpc.IsEOF(err) {
+			lumber.Trace(box.Dict{
+				"module": "daemon",
+				"action": "poll.eof",
+			})
+			return
+		}
+
+		log.Error(err)
 	})
 
 	return x
@@ -64,15 +101,21 @@ func (x *Producer) Wait() {
 	x.daemon.Wait()
 }
 
-func (x *Producer) PreHook(hook Hook) {
-	x.daemon.PreHook(func(request *rpc.Request) {
+func (x *Producer) OnRequest(hook RequestHook) {
+	x.daemon.OnRequest(func(request *rpc.Request) {
 		hook(request)
 	})
 }
 
-func (x *Producer) PostHook(hook Hook) {
-	x.daemon.PostHook(func(request *rpc.Request) {
+func (x *Producer) OnResponse(hook ResponseHook) {
+	x.daemon.OnResponse(func(request *rpc.Request) {
 		hook(request)
+	})
+}
+
+func (x *Producer) OnError(phase rpc.Phase, hook ErrorHook) {
+	x.daemon.OnError(phase, func(err error) {
+		hook(err)
 	})
 }
 

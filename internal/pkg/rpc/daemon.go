@@ -4,61 +4,77 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"io"
 	"net"
-	"strings"
 	"sync"
 	"time"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/muniere/glean/internal/pkg/ascii"
-	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/jsonic"
-	"github.com/muniere/glean/internal/pkg/lumber"
 )
 
-var ConnectionClosed = errors.New("connection closed")
+type Phase int
+
+const (
+	Accept = iota
+	Handle
+)
+
+type Proc func(*Request, *Gateway) error
+type RequestHook func(*Request)
+type ResponseHook func(*Request)
+type ErrorHook func(error)
 
 type Daemon struct {
-	Address      string
-	Port         int
-	Window       int
-	ReadTimeout  time.Duration
-	WriteTimeout time.Duration
-	listener     net.Listener
-	actions      map[string]Proc
-	fallback     Proc
-	preHooks     []Hook
-	postHooks    []Hook
-	group        *sync.WaitGroup
+	Address       string
+	Port          int
+	Window        int
+	ReadTimeout   time.Duration
+	WriteTimeout  time.Duration
+	listener      net.Listener
+	actions       map[string]Proc
+	fallback      Proc
+	requestHooks  []RequestHook
+	responseHooks []ResponseHook
+	errorHooks    map[Phase][]ErrorHook
+	group         *sync.WaitGroup
 }
-
-type Hook func(*Request)
-type Proc func(*Request, *Gateway) error
 
 func NewDaemon(addr string, port int) *Daemon {
 	return &Daemon{
-		Address:      addr,
-		Port:         port,
-		Window:       1024,
-		ReadTimeout:  1 * time.Second,
-		WriteTimeout: 1 * time.Second,
-		listener:     nil,
-		actions:      map[string]Proc{},
-		fallback:     nil,
-		preHooks:     []Hook{},
-		postHooks:    []Hook{},
-		group:        &sync.WaitGroup{},
+		Address:       addr,
+		Port:          port,
+		Window:        1024,
+		ReadTimeout:   1 * time.Second,
+		WriteTimeout:  1 * time.Second,
+		listener:      nil,
+		actions:       map[string]Proc{},
+		fallback:      nil,
+		requestHooks:  []RequestHook{},
+		responseHooks: []ResponseHook{},
+		errorHooks:    map[Phase][]ErrorHook{},
+		group:         &sync.WaitGroup{},
 	}
 }
 
-func (d *Daemon) PreHook(hook Hook) {
-	d.preHooks = append(d.preHooks, hook)
+func (d *Daemon) OnRequest(hook RequestHook) {
+	d.requestHooks = append(d.requestHooks, hook)
 }
 
-func (d *Daemon) PostHook(hook Hook) {
-	d.postHooks = append(d.postHooks, hook)
+func (d *Daemon) OnResponse(hook ResponseHook) {
+	d.responseHooks = append(d.responseHooks, hook)
+}
+
+func (d *Daemon) OnError(phase Phase, hook ErrorHook) {
+	d.errorHooks[phase] = append(d.subErrorHooks(phase), hook)
+}
+
+func (d *Daemon) subErrorHooks(phase Phase) []ErrorHook {
+	arr, ok := d.errorHooks[phase]
+	if ok {
+		return arr
+	} else {
+		return []ErrorHook{}
+	}
 }
 
 func (d *Daemon) Register(key string, proc Proc) {
@@ -96,16 +112,10 @@ func (d *Daemon) Start() error {
 			if err == nil {
 				continue
 			}
-			if err == ConnectionClosed {
-				lumber.Trace(box.Dict{
-					"module":  "daemon",
-					"action":  "abort",
-					"message": err.Error(),
-				})
-				break
-			}
 
-			log.Warn(err)
+			for _, hook := range d.subErrorHooks(Accept) {
+				hook(err)
+			}
 			break
 		}
 	}()
@@ -124,38 +134,24 @@ func (d *Daemon) Wait() {
 func (d *Daemon) poll() error {
 	con, err := d.listener.Accept()
 	if err != nil {
-		// see https://github.com/golang/net/blob/master/http2/server.go#L676-L679
-		if strings.Contains(err.Error(), "use of closed network connection") {
-			return ConnectionClosed
-		} else {
-			return err
-		}
+		return err
 	}
 
 	go func() {
 		defer func() {
 			_ = con.Close()
 		}()
+
 		err := d.handle(con)
+
 		if err == nil {
 			return
 		}
-		e, ok := err.(net.Error)
-		if ok && e.Timeout() {
-			lumber.Trace(box.Dict{
-				"module": "daemon",
-				"action": "poll.timeout",
-			})
-			return
+
+		for _, hook := range d.subErrorHooks(Handle) {
+			hook(err)
 		}
-		if err == io.EOF {
-			lumber.Trace(box.Dict{
-				"module": "daemon",
-				"action": "poll.eof",
-			})
-			return
-		}
-		log.Error(err)
+		return
 	}()
 
 	return nil
@@ -179,7 +175,7 @@ func (d *Daemon) handle(con net.Conn) error {
 	}
 
 	// response
-	for _, hook := range d.preHooks {
+	for _, hook := range d.requestHooks {
 		hook(&request)
 	}
 
@@ -187,7 +183,7 @@ func (d *Daemon) handle(con net.Conn) error {
 		return err
 	}
 
-	for _, hook := range d.postHooks {
+	for _, hook := range d.responseHooks {
 		hook(&request)
 	}
 
