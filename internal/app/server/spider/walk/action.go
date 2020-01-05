@@ -10,6 +10,7 @@ import (
 
 	"github.com/muniere/glean/internal/app/server/spider/log"
 	"github.com/muniere/glean/internal/pkg/jsonic"
+	"github.com/muniere/glean/internal/pkg/urls"
 )
 
 type command struct {
@@ -87,5 +88,6 @@ func scrape(data json.RawMessage, context context, options Options) ([]*url.URL,
 	if err != nil {
 		return nil, err
 	}
-	return uris, nil
+
+	return urls.Unique(uris), nil
 }

@@ -12,6 +12,7 @@ import (
 	"gopkg.in/xmlpath.v2"
 
 	"github.com/muniere/glean/internal/app/server/spider/log"
+	"github.com/muniere/glean/internal/pkg/urls"
 )
 
 type command struct {
@@ -85,7 +86,7 @@ func scrape(doc *xmlpath.Node, context context, options Options) (*SiteInfo, err
 		return nil, err
 	}
 
-	links := append(hrefs, srcs...)
+	links := urls.Unique(append(hrefs, srcs...))
 
 	log.Result(len(links), context.dict())
 

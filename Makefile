@@ -18,6 +18,18 @@ deps:
 test:
 	go test -v ./...
 
+.PHONY: serve
+serve: deps all
+	mkdir -p .var && .bin/gleand --data-dir=.var
+
+.PHONY: start
+start: deps all
+	@./init/gleand start
+
+.PHONY: stop
+stop: 
+	@./init/gleand stop
+
 .PHONY: install
 install:
 	go install ./...
