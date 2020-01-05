@@ -2,7 +2,12 @@ package download
 
 import (
 	"errors"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -16,6 +21,8 @@ import (
 )
 
 var skipDownload = errors.New("skip download")
+var dataTooSmall = errors.New("data too small")
+var dataTooLarge = errors.New("data too large")
 
 type command struct {
 	uri *url.URL
@@ -83,6 +90,13 @@ func launch(group *sync.WaitGroup, channel chan command, options Options) {
 			if err == skipDownload {
 				continue
 			}
+			if err == dataTooSmall {
+				continue
+			}
+			if err == dataTooLarge {
+				continue
+			}
+
 			if err != nil {
 				lumber.Warn(err)
 			}
@@ -95,8 +109,11 @@ func launch(group *sync.WaitGroup, channel chan command, options Options) {
 func run(cmd command, options Options) error {
 	ctx := compose(cmd, options)
 
-	if err := test(ctx, options); err == skipDownload {
-		return skipDownload
+	if err := preCondition(ctx, options); err != nil {
+		if err == skipDownload {
+			lumber.SkipStep("download", ctx.dict())
+		}
+		return err
 	}
 
 	res, err := fetch(ctx, options)
@@ -112,16 +129,21 @@ func run(cmd command, options Options) error {
 		return errors.New(res.Status)
 	}
 
-	file, err := touch(ctx, options)
+	temp, err := save(res.Body, ctx, options)
 	if err != nil {
 		return err
 	}
 
-	defer func() {
-		_ = file.Close()
-	}()
+	ctx.temp = temp
 
-	return save(file, res.Body, ctx, options)
+	if err := postCondition(temp, ctx, options); err != nil {
+		if err == dataTooSmall {
+			lumber.SkipStep("persistent", ctx.dict())
+		}
+		return err
+	}
+
+	return persistent(temp, ctx, options)
 }
 
 func compose(cmd command, options Options) context {
@@ -138,41 +160,97 @@ func compose(cmd command, options Options) context {
 	return context{uri: cmd.uri, path: path}
 }
 
-func test(context context, options Options) error {
+func preCondition(ctx context, options Options) error {
 	if options.DryRun {
-		lumber.SkipStep("download", context.dict())
 		return skipDownload
 	}
 
-	if !options.Overwrite && sys.Exists(context.path) {
-		lumber.SkipStep("download", context.dict())
+	if !options.Overwrite && sys.Exists(ctx.path) {
 		return skipDownload
 	}
 
 	return nil
 }
 
-func fetch(context context, options Options) (*http.Response, error) {
-	lumber.Start(context.dict())
+func fetch(ctx context, options Options) (*http.Response, error) {
+	lumber.Start(ctx.dict())
 
-	defer lumber.Finish(context.dict())
+	defer lumber.Finish(ctx.dict())
 
-	return http.Get(context.uri.String())
+	return http.Get(ctx.uri.String())
 }
 
-func touch(context context, options Options) (*os.File, error) {
-	lumber.Start(context.dict())
+func save(src io.Reader, ctx context, options Options) (string, error) {
+	lumber.Start(ctx.dict())
 
-	defer lumber.Finish(context.dict())
+	defer lumber.Finish(ctx.dict())
 
-	return os.Create(context.path)
+	f, err := ioutil.TempFile("", filepath.Base(ctx.path))
+	if err != nil {
+		return "", err
+	}
+
+	defer func() {
+		_ = f.Close()
+	}()
+
+	ctx.temp = f.Name()
+
+	if err := temp(f, src, ctx, options); err != nil {
+		return "", err
+	}
+
+	return f.Name(), err
 }
 
-func save(dst io.Writer, src io.Reader, context context, options Options) error {
-	lumber.Start(context.dict())
+func temp(f *os.File, src io.Reader, ctx context, options Options) error {
+	lumber.Start(ctx.dict())
 
-	defer lumber.Start(context.dict())
+	defer lumber.Finish(ctx.dict())
 
-	_, err := io.Copy(dst, src)
+	_, err := io.Copy(f, src)
 	return err
+}
+
+func postCondition(path string, ctx context, options Options) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		_ = f.Close()
+	}()
+
+	img, _, err := image.Decode(f)
+	if err != nil {
+		return err
+	}
+
+	r := img.Bounds()
+	w := r.Dx()
+	h := r.Dy()
+
+	if options.MinWidth > 0 && w < options.MinWidth {
+		return dataTooSmall
+	}
+	if options.MinHeight > 0 && h < options.MinHeight {
+		return dataTooSmall
+	}
+	if options.MaxWidth > 0 && w > options.MaxWidth {
+		return dataTooLarge
+	}
+	if options.MaxHeight > 0 && h > options.MaxHeight {
+		return dataTooLarge
+	}
+
+	return nil
+}
+
+func persistent(path string, ctx context, options Options) error {
+	lumber.Start(ctx.dict())
+
+	defer lumber.Finish(ctx.dict())
+
+	return os.Rename(path, ctx.path)
 }

@@ -2,6 +2,7 @@ package lumber
 
 import (
 	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -10,10 +11,13 @@ import (
 	"github.com/muniere/glean/internal/pkg/box"
 )
 
-var (
-	Warn  = logrus.Warn
-	Error = logrus.Error
-)
+func Warn(err error) {
+	logrus.WithFields(w(box.Dict{"error": err.Error()})).Warn()
+}
+
+func Error(err error) {
+	logrus.WithFields(w(box.Dict{"error": err.Error()})).Error()
+}
 
 func Start(context box.Dict) {
 	logrus.WithFields(t(context, "", "start")).Info()
@@ -51,9 +55,9 @@ func t(context box.Dict, step string, suffix string) logrus.Fields {
 	pc, file, line, _ := runtime.Caller(2)
 
 	x := logrus.Fields{
-		"module": "batch",
-		"file": path.Join(path.Base(path.Dir(file)), path.Base(file)),
-		"line": line,
+		"module":  "batch",
+		"file":    filepath.Join(path.Base(path.Dir(file)), path.Base(file)),
+		"line":    line,
 		"context": context,
 	}
 
@@ -67,4 +71,15 @@ func t(context box.Dict, step string, suffix string) logrus.Fields {
 	}
 
 	return x
+}
+
+func w(context box.Dict) logrus.Fields {
+	_, file, line, _ := runtime.Caller(2)
+
+	return logrus.Fields{
+		"module":  "batch",
+		"file":    filepath.Join(path.Base(path.Dir(file)), path.Base(file)),
+		"line":    line,
+		"context": context,
+	}
 }

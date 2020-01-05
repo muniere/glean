@@ -3,7 +3,7 @@ package cli
 import (
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/sirupsen/logrus"
 
@@ -76,7 +76,7 @@ func prepareForFileLog(options *options) error {
 
 func prepareCmdFileLog(options *options) error {
 	file, err := os.OpenFile(
-		path.Join(options.logDir, cmdLogName), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644,
+		filepath.Join(options.logDir, cmdLogName), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644,
 	)
 	if err != nil {
 		return err
@@ -90,7 +90,7 @@ func prepareCmdFileLog(options *options) error {
 
 func prepareOutFileLog(options *options) error {
 	file, err := os.OpenFile(
-		path.Join(options.logDir, outLogName), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644,
+		filepath.Join(options.logDir, outLogName), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644,
 	)
 	if err != nil {
 		return err
@@ -102,7 +102,7 @@ func prepareOutFileLog(options *options) error {
 
 func prepareErrFileLog(options *options) error {
 	file, err := os.OpenFile(
-		path.Join(options.logDir, errLogName), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644,
+		filepath.Join(options.logDir, errLogName), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644,
 	)
 	if err != nil {
 		return err

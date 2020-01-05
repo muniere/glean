@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	"github.com/muniere/glean/internal/pkg/rpc"
@@ -13,6 +12,10 @@ type options struct {
 	port        int
 	parallel    int
 	concurrency int
+	minWidth    int
+	maxWidth    int
+	minHeight   int
+	maxHeight   int
 	overwrite   bool
 	dataDir     string
 	logDir      string
@@ -20,15 +23,19 @@ type options struct {
 	verbose     bool
 }
 
-func assemble(cmd *cobra.Command) {
-	cmd.Flags().String("address", rpc.LocalAddr, "Address to bind")
-	cmd.Flags().Int("port", rpc.Port, "Port to bind")
-	cmd.Flags().Int("parallel", task.Parallel, "The number of workers for download")
-	cmd.Flags().Int("concurrency", task.Concurrency, "Concurrency of download tasks per worker")
-	cmd.Flags().String("data-dir", "", "Base directory to download files")
-	cmd.Flags().String("log-dir", "", "Path to log directory")
-	cmd.Flags().BoolP("dry-run", "n", false, "Do not perform actions actually")
-	cmd.Flags().BoolP("verbose", "v", false, "Show verbose messages")
+func assemble(flags *pflag.FlagSet) {
+	flags.String("address", rpc.LocalAddr, "Address to bind")
+	flags.Int("port", rpc.Port, "Port to bind")
+	flags.Int("parallel", task.Parallel, "The number of workers for download")
+	flags.Int("concurrency", task.Concurrency, "Concurrency of download tasks per worker")
+	flags.Int("min-width", -1, "Minimum width of images")
+	flags.Int("max-width", -1, "Maximum width of images")
+	flags.Int("min-height", -1, "Minimum height of images")
+	flags.Int("max-height", -1, "Maximum height of images")
+	flags.String("data-dir", "", "Base directory to download files")
+	flags.String("log-dir", "", "Path to log directory")
+	flags.BoolP("dry-run", "n", false, "Do not perform actions actually")
+	flags.BoolP("verbose", "v", false, "Show verbose messages")
 }
 
 func decode(flags *pflag.FlagSet) (*options, error) {
@@ -48,6 +55,26 @@ func decode(flags *pflag.FlagSet) (*options, error) {
 	}
 
 	concurrency, err := flags.GetInt("concurrency")
+	if err != nil {
+		return nil, err
+	}
+
+	minWidth, err := flags.GetInt("min-width")
+	if err != nil {
+		return nil, err
+	}
+
+	maxWidth, err := flags.GetInt("max-width")
+	if err != nil {
+		return nil, err
+	}
+
+	minHeight, err := flags.GetInt("min-height")
+	if err != nil {
+		return nil, err
+	}
+
+	maxHeight, err := flags.GetInt("max-height")
 	if err != nil {
 		return nil, err
 	}
@@ -77,6 +104,10 @@ func decode(flags *pflag.FlagSet) (*options, error) {
 		port:        port,
 		parallel:    parallel,
 		concurrency: concurrency,
+		minWidth:    minWidth,
+		maxWidth:    maxWidth,
+		minHeight:   minHeight,
+		maxHeight:   maxHeight,
 		dataDir:     dataDir,
 		logDir:      logDir,
 		dryRun:      dryRun,

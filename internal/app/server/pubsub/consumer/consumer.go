@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"path"
 	"path/filepath"
 	"time"
 
@@ -21,9 +20,13 @@ type Consumer struct {
 }
 
 type Config struct {
-	Prefix      string
+	DataDir     string
 	Parallel    int
 	Concurrency int
+	MinWidth    int
+	MaxWidth    int
+	MinHeight   int
+	MaxHeight   int
 	Overwrite   bool
 	DryRun      bool
 }
@@ -53,24 +56,30 @@ func (x *Consumer) Spawn(config Config) {
 			if filepath.IsAbs(prefix) {
 				prefixer = prefix
 			} else {
-				prefixer = path.Join(config.Prefix, prefix)
+				prefixer = filepath.Join(config.DataDir, prefix)
 			}
 		} else {
 			if len(info.Title) > 0 {
-				prefixer = path.Join(config.Prefix, info.Title)
+				prefixer = filepath.Join(config.DataDir, info.Title)
 			} else {
-				prefixer = path.Join(config.Prefix, url.QueryEscape(uri.String()))
+				prefixer = filepath.Join(config.DataDir, url.QueryEscape(uri.String()))
 			}
 		}
 
-		return batch.Download(info.Links, batch.DownloadOptions{
+		opts := batch.DownloadOptions{
 			Prefix:      prefixer,
 			Concurrency: config.Concurrency,
+			MinWidth:    config.MinWidth,
+			MaxWidth:    config.MaxWidth,
+			MinHeight:   config.MinHeight,
+			MaxHeight:   config.MaxHeight,
 			Blocking:    false,
 			Overwrite:   config.Overwrite,
 			DryRun:      config.DryRun,
 			Interval:    500 * time.Millisecond,
-		})
+		}
+
+		return batch.Download(info.Links, opts)
 	}
 
 	clutch := func(uri *url.URL, prefix string) error {
@@ -84,20 +93,26 @@ func (x *Consumer) Spawn(config Config) {
 			if filepath.IsAbs(prefix) {
 				prefixer = prefix
 			} else {
-				prefixer = path.Join(config.Prefix, prefix)
+				prefixer = filepath.Join(config.DataDir, prefix)
 			}
 		} else {
-			prefixer = path.Join(config.Prefix, url.QueryEscape(uri.String()))
+			prefixer = filepath.Join(config.DataDir, url.QueryEscape(uri.String()))
 		}
 
-		return batch.Download(uris, batch.DownloadOptions{
+		opts := batch.DownloadOptions{
 			Prefix:      prefixer,
 			Concurrency: config.Concurrency,
+			MinWidth:    config.MinWidth,
+			MaxWidth:    config.MaxWidth,
+			MinHeight:   config.MinHeight,
+			MaxHeight:   config.MaxHeight,
 			Blocking:    false,
 			Overwrite:   config.Overwrite,
 			DryRun:      config.DryRun,
 			Interval:    500 * time.Millisecond,
-		})
+		}
+
+		return batch.Download(uris, opts)
 	}
 
 	action := func(job task.Job, meta task.Meta) error {

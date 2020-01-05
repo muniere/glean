@@ -17,9 +17,13 @@ type Manager struct {
 type Config struct {
 	Address     string `json:"address"`
 	Port        int    `json:"port"`
-	Prefix      string `json:"prefix"`
+	DataDir     string `json:"data_dir"`
 	Parallel    int    `json:"parallel"`
 	Concurrency int    `json:"concurrency"`
+	MinWidth    int    `json:"min_width"`
+	MaxWidth    int    `json:"max_width"`
+	MinHeight   int    `json:"min_height"`
+	MaxHeight   int    `json:"max_height"`
 	Overwrite   bool   `json:"overwrite"`
 	LogDir      string `json:"log_dir"`
 	DryRun      bool   `json:"dry_run"`
@@ -32,7 +36,11 @@ func NewManager(config Config) *Manager {
 	c := consumer.NewConsumer(q, consumer.Config{
 		Parallel:    config.Parallel,
 		Concurrency: config.Concurrency,
-		Prefix:      config.Prefix,
+		DataDir:     config.DataDir,
+		MinWidth:    config.MinWidth,
+		MaxWidth:    config.MaxWidth,
+		MinHeight:   config.MinHeight,
+		MaxHeight:   config.MaxHeight,
 		Overwrite:   config.Overwrite,
 		DryRun:      config.DryRun,
 	})

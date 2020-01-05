@@ -2,6 +2,7 @@ package lumber
 
 import (
 	"path"
+	"path/filepath"
 	"runtime"
 
 	"github.com/sirupsen/logrus"
@@ -53,7 +54,7 @@ func t(values box.Dict) logrus.Fields {
 	_, file, line, _ := runtime.Caller(2)
 
 	if !vf {
-		x["file"] = path.Join(path.Base(path.Dir(file)), path.Base(file))
+		x["file"] = filepath.Join(path.Base(path.Dir(file)), path.Base(file))
 	}
 	if !vl {
 		x["line"] = line

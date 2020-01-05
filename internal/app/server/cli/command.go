@@ -26,7 +26,7 @@ func NewCommand() *cobra.Command {
 		},
 	}
 
-	assemble(cmd)
+	assemble(cmd.Flags())
 
 	return cmd
 }
@@ -102,9 +102,13 @@ func translate(options *options) pubsub.Config {
 	return pubsub.Config{
 		Address:     options.address,
 		Port:        options.port,
-		Prefix:      options.dataDir,
+		DataDir:     options.dataDir,
 		Parallel:    options.parallel,
 		Concurrency: options.concurrency,
+		MinWidth:    options.minWidth,
+		MaxWidth:    options.maxWidth,
+		MinHeight:   options.minHeight,
+		MaxHeight:   options.maxHeight,
 		Overwrite:   options.overwrite,
 		LogDir:      options.logDir,
 		DryRun:      options.dryRun,
