@@ -23,7 +23,7 @@ func Perform(ctx *shared.Context) error {
 
 	lumber.Info(box.Dict{
 		"module": "producer",
-		"action": "produce",
+		"event":  "job::produce",
 		"job":    job,
 	})
 

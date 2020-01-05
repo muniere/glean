@@ -35,7 +35,7 @@ func prepare(options *options) error {
 		base := &log.JSONFormatter{
 			TimestampFormat:  "15:04:05.000",
 			DisableTimestamp: false,
-			DataKey:          "values",
+			DataKey:          "fields",
 			FieldMap:         nil,
 			CallerPrettyfier: nil,
 			PrettyPrint:      false,

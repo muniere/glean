@@ -1,40 +1,70 @@
 package log
 
 import (
-	log "github.com/sirupsen/logrus"
+	"path"
+	"runtime"
+	"strings"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/muniere/glean/internal/pkg/box"
-	"github.com/muniere/glean/internal/pkg/lumber"
 )
 
-func Debug(action string, context box.Dict) {
-	lumber.Debug(box.Dict{
-		"module":  "batch",
-		"action":  action,
-		"context": context,
-	})
+var (
+	Warn  = logrus.Warn
+	Error = logrus.Error
+)
+
+func Start(context box.Dict) {
+	logrus.WithFields(t(context, "", "start")).Info()
 }
 
-func Info(action string, context box.Dict) {
-	lumber.Info(box.Dict{
-		"module":  "batch",
-		"action":  action,
-		"context": context,
-	})
+func StartStep(step string, context box.Dict) {
+	logrus.WithFields(t(context, step, "start")).Info()
+}
+
+func Finish(context box.Dict) {
+	logrus.WithFields(t(context, "", "finish")).Info()
+}
+
+func FinishStep(step string, context box.Dict) {
+	logrus.WithFields(t(context, step, "finish")).Info()
+}
+
+func Skip(context box.Dict) {
+	logrus.WithFields(t(context, "", "skip")).Info()
+}
+
+func SkipStep(step string, context box.Dict) {
+	logrus.WithFields(t(context, step, "skip")).Info()
 }
 
 func Result(value interface{}, context box.Dict) {
-	lumber.Info(box.Dict{
-		"module":  "batch",
-		"result":  value,
+	logrus.WithFields(t(context, "", "result")).WithField("result", value).Info()
+}
+
+func ResultStep(step string, value interface{}, context box.Dict) {
+	logrus.WithFields(t(context, step, "result")).WithField("result", value).Info()
+}
+
+func t(context box.Dict, step string, suffix string) logrus.Fields {
+	pc, file, line, _ := runtime.Caller(2)
+
+	x := logrus.Fields{
+		"module": "batch",
+		"file": path.Join(path.Base(path.Dir(file)), path.Base(file)),
+		"line": line,
 		"context": context,
-	})
-}
+	}
 
-func Warn(args ...interface{}) {
-	log.Warn(args...)
-}
+	if len(step) > 0 {
+		x["event"] = strings.Join([]string{step, suffix}, "::")
+	} else {
+		fun := runtime.FuncForPC(pc)
+		elems := strings.Split(fun.Name(), ".")
+		step := elems[len(elems)-1]
+		x["event"] = strings.Join([]string{step, suffix}, "::")
+	}
 
-func Error(args ...interface{}) {
-	log.Error(args...)
+	return x
 }

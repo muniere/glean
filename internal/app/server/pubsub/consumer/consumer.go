@@ -105,7 +105,7 @@ func (x *Consumer) Spawn(config Config) {
 	action := func(job task.Job, meta task.Meta) error {
 		lumber.Info(box.Dict{
 			"module": "consumer",
-			"action": "consume",
+			"event":  "job::consume",
 			"job":    job,
 			"meta":   meta,
 		})
@@ -137,7 +137,7 @@ func (x *Consumer) Spawn(config Config) {
 func (x *Consumer) Start() error {
 	lumber.Info(box.Dict{
 		"module": "consumer",
-		"action": "start",
+		"event":  "start",
 	})
 	return x.guild.Start()
 }
@@ -145,7 +145,7 @@ func (x *Consumer) Start() error {
 func (x *Consumer) Stop() error {
 	lumber.Info(box.Dict{
 		"module": "consumer",
-		"action": "stop",
+		"event":  "stop",
 	})
 	return x.guild.Stop()
 }

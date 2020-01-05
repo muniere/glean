@@ -44,15 +44,9 @@ func run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	lumber.Debug(box.Dict{
+	lumber.Info(box.Dict{
 		"module": "root",
-		"action": "launch",
-		"pid":    os.Getpid(),
-	})
-
-	defer lumber.Debug(box.Dict{
-		"module": "root",
-		"action": "halt",
+		"event":  "start",
 		"pid":    os.Getpid(),
 	})
 
@@ -72,15 +66,15 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 	lumber.Info(box.Dict{
 		"module": "root",
-		"action": "signal.wait",
-		"values": signals.Join(sigs, ", "),
+		"event":  "signal::wait",
+		"signals": signals.Join(sigs, ", "),
 	})
 
 	sig := signals.Wait(sigs...)
 	lumber.Info(box.Dict{
 		"module": "root",
-		"action": "signal.recv",
-		"value":  sig.String(),
+		"event":  "signal::recv",
+		"signal":  sig.String(),
 	})
 
 	// stop
@@ -88,6 +82,12 @@ func run(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		log.Error(err)
 	}
+
+	lumber.Info(box.Dict{
+		"module": "root",
+		"event":  "stop",
+		"pid":    os.Getpid(),
+	})
 
 	return nil
 }

@@ -107,7 +107,7 @@ func (d *Daemon) Start() error {
 		defer d.group.Done()
 
 		for {
-			err := d.poll()
+			err := d.accept()
 
 			if err == nil {
 				continue
@@ -131,7 +131,7 @@ func (d *Daemon) Wait() {
 	d.group.Wait()
 }
 
-func (d *Daemon) poll() error {
+func (d *Daemon) accept() error {
 	con, err := d.listener.Accept()
 	if err != nil {
 		return err

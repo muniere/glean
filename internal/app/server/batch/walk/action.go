@@ -34,9 +34,9 @@ func compose(cmd command, options Options) context {
 }
 
 func fetch(context context, options Options) (json.RawMessage, error) {
-	log.Debug("fetch.start", context.dict())
+	log.Start(context.dict())
 
-	defer log.Debug("fetch.finish", context.dict())
+	defer log.Finish(context.dict())
 
 	res, err := http.Get(context.uri.String())
 	if err != nil {
@@ -55,9 +55,9 @@ func fetch(context context, options Options) (json.RawMessage, error) {
 }
 
 func scrape(data json.RawMessage, context context, options Options) ([]*url.URL, error) {
-	log.Debug("scrape.start", context.dict())
+	log.Start(context.dict())
 
-	defer log.Debug("scrape.finish", context.dict())
+	defer log.Finish(context.dict())
 
 	re := regexp.MustCompile(".*\\.(jpg|png|gif)")
 

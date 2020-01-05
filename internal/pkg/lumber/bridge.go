@@ -1,43 +1,63 @@
 package lumber
 
 import (
-	log "github.com/sirupsen/logrus"
+	"path"
+	"runtime"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/muniere/glean/internal/pkg/box"
 )
 
 func Trace(values box.Dict) {
-	log.WithFields(t(values)).Trace()
+	logrus.WithFields(t(values)).Trace()
 }
 
 func Debug(values box.Dict) {
-	log.WithFields(t(values)).Debug()
+	logrus.WithFields(t(values)).Debug()
 }
 
 func Info(values box.Dict) {
-	log.WithFields(t(values)).Info()
+	logrus.WithFields(t(values)).Info()
 }
 
 func Warn(values box.Dict) {
-	log.WithFields(t(values)).Warn()
+	logrus.WithFields(t(values)).Warn()
 }
 
 func Error(values box.Dict) {
-	log.WithFields(t(values)).Error()
+	logrus.WithFields(t(values)).Error()
 }
 
 func Panic(values box.Dict) {
-	log.WithFields(t(values)).Panic()
+	logrus.WithFields(t(values)).Panic()
 }
 
 func Fatal(values box.Dict) {
-	log.WithFields(t(values)).Fatal()
+	logrus.WithFields(t(values)).Fatal()
 }
 
-func t(values box.Dict) log.Fields {
-	x := log.Fields{}
+func t(values box.Dict) logrus.Fields {
+	x := logrus.Fields{}
 	for k, v := range values {
 		x[k] = v
 	}
+
+	_, vf := values["file"]
+	_, vl := values["line"]
+
+	if vf && vl {
+		return x
+	}
+
+	_, file, line, _ := runtime.Caller(2)
+
+	if !vf {
+		x["file"] = path.Join(path.Base(path.Dir(file)), path.Base(file))
+	}
+	if !vl {
+		x["line"] = line
+	}
+
 	return x
 }

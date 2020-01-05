@@ -23,7 +23,7 @@ type command struct {
 
 func Perform(urls []*url.URL, options Options) error {
 	// prepare
-	if err := prepare(options); err != nil {
+	if err := mkdir(options); err != nil {
 		return err
 	}
 
@@ -47,22 +47,22 @@ func Perform(urls []*url.URL, options Options) error {
 	return nil
 }
 
-func prepare(options Options) error {
+func mkdir(options Options) error {
 	ctx := box.Dict{"path": options.Prefix}
 
 	if options.DryRun {
-		log.Debug("mkdir.skip", ctx)
+		log.Skip(ctx)
 		return nil
 	}
 
 	if sys.Exists(options.Prefix) {
-		log.Debug("mkdir.skip", ctx)
+		log.Skip(ctx)
 		return nil
 	}
 
-	log.Debug("mkdir.start", ctx)
+	log.Start(ctx)
 
-	defer log.Debug("mkdir.finish", ctx)
+	defer log.Finish(ctx)
 
 	return os.MkdirAll(options.Prefix, 0755)
 }
@@ -140,12 +140,12 @@ func compose(cmd command, options Options) context {
 
 func test(context context, options Options) error {
 	if options.DryRun {
-		log.Info("download.skip", context.dict())
+		log.SkipStep("download", context.dict())
 		return skipDownload
 	}
 
 	if !options.Overwrite && sys.Exists(context.path) {
-		log.Info("download.skip", context.dict())
+		log.SkipStep("download", context.dict())
 		return skipDownload
 	}
 
@@ -153,25 +153,25 @@ func test(context context, options Options) error {
 }
 
 func fetch(context context, options Options) (*http.Response, error) {
-	log.Debug("fetch.start", context.dict())
+	log.Start(context.dict())
 
-	defer log.Debug("fetch.finish", context.dict())
+	defer log.Finish(context.dict())
 
 	return http.Get(context.uri.String())
 }
 
 func touch(context context, options Options) (*os.File, error) {
-	log.Debug("touch.start", context.dict())
+	log.Start(context.dict())
 
-	defer log.Debug("touch.finish", context.dict())
+	defer log.Finish(context.dict())
 
 	return os.Create(context.path)
 }
 
 func save(dst io.Writer, src io.Reader, context context, options Options) error {
-	log.Debug("save.start", context.dict())
+	log.Start(context.dict())
 
-	defer log.Debug("save.finish", context.dict())
+	defer log.Start(context.dict())
 
 	_, err := io.Copy(dst, src)
 	return err

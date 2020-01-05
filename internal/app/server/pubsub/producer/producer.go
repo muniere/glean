@@ -40,7 +40,7 @@ func NewProducer(queue *task.Queue, config Config) *Producer {
 	x.OnRequest(func(request *rpc.Request) {
 		lumber.Info(box.Dict{
 			"module":  "producer",
-			"action":  "receive",
+			"event":   "request",
 			"command": request.Action,
 		})
 	})
@@ -48,8 +48,8 @@ func NewProducer(queue *task.Queue, config Config) *Producer {
 	x.OnError(rpc.Accept, func(err error) {
 		if rpc.IsClosedConn(err) {
 			lumber.Trace(box.Dict{
-				"module":  "daemon",
-				"action":  "abort",
+				"module":  "producer",
+				"event":   "abort",
 				"message": err.Error(),
 			})
 			return
@@ -61,16 +61,16 @@ func NewProducer(queue *task.Queue, config Config) *Producer {
 	x.OnError(rpc.Handle, func(err error) {
 		if rpc.IsTimeout(err) {
 			lumber.Trace(box.Dict{
-				"module": "daemon",
-				"action": "poll.timeout",
+				"module": "producer",
+				"event":  "poll.timeout",
 			})
 			return
 		}
 
 		if rpc.IsEOF(err) {
 			lumber.Trace(box.Dict{
-				"module": "daemon",
-				"action": "poll.eof",
+				"module": "producer",
+				"event":  "poll.eof",
 			})
 			return
 		}
@@ -84,7 +84,7 @@ func NewProducer(queue *task.Queue, config Config) *Producer {
 func (x *Producer) Start() error {
 	lumber.Info(box.Dict{
 		"module": "producer",
-		"action": "start",
+		"event":  "start",
 	})
 	return x.daemon.Start()
 }
@@ -92,7 +92,7 @@ func (x *Producer) Start() error {
 func (x *Producer) Stop() error {
 	lumber.Info(box.Dict{
 		"module": "producer",
-		"action": "stop",
+		"event":  "stop",
 	})
 	return x.daemon.Stop()
 }
@@ -121,16 +121,12 @@ func (x *Producer) OnError(phase rpc.Phase, hook ErrorHook) {
 
 func (x *Producer) Register(key string, proc Proc) {
 	x.daemon.Register(key, func(request *rpc.Request, gateway *rpc.Gateway) error {
-		return proc(
-			action.NewContext(request, gateway, x.queue),
-		)
+		return proc(action.NewContext(request, gateway, x.queue))
 	})
 }
 
 func (x *Producer) RegisterDefault(proc Proc) {
 	x.daemon.RegisterDefault(func(request *rpc.Request, gateway *rpc.Gateway) error {
-		return proc(
-			action.NewContext(request, gateway, x.queue),
-		)
+		return proc(action.NewContext(request, gateway, x.queue))
 	})
 }
