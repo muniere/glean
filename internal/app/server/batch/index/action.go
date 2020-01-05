@@ -11,7 +11,7 @@ import (
 	"golang.org/x/net/html/charset"
 	"gopkg.in/xmlpath.v2"
 
-	"github.com/muniere/glean/internal/app/server/batch/log"
+	"github.com/muniere/glean/internal/app/server/batch/lumber"
 	"github.com/muniere/glean/internal/pkg/urls"
 )
 
@@ -36,9 +36,9 @@ func compose(cmd command, options Options) context {
 }
 
 func fetch(context context, options Options) (*xmlpath.Node, error) {
-	log.Start(context.dict())
+	lumber.Start(context.dict())
 
-	defer log.Finish(context.dict())
+	defer lumber.Finish(context.dict())
 
 	res, err := http.Get(context.uri.String())
 	if err != nil {
@@ -68,9 +68,9 @@ func fetch(context context, options Options) (*xmlpath.Node, error) {
 }
 
 func scrape(doc *xmlpath.Node, context context, options Options) (*SiteInfo, error) {
-	log.Start(context.dict())
+	lumber.Start(context.dict())
 
-	defer log.Finish(context.dict())
+	defer lumber.Finish(context.dict())
 
 	title := scrapeTitle(doc)
 
@@ -88,7 +88,7 @@ func scrape(doc *xmlpath.Node, context context, options Options) (*SiteInfo, err
 
 	links := urls.Unique(append(hrefs, srcs...))
 
-	log.Result(len(links), context.dict())
+	lumber.Result(len(links), context.dict())
 
 	info := SiteInfo{
 		URI:   context.uri,

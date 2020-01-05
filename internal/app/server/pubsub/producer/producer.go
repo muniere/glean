@@ -1,8 +1,6 @@
 package producer
 
 import (
-	log "github.com/sirupsen/logrus"
-
 	"github.com/muniere/glean/internal/app/server/action"
 	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/lumber"
@@ -48,14 +46,18 @@ func NewProducer(queue *task.Queue, config Config) *Producer {
 	x.OnError(rpc.Accept, func(err error) {
 		if rpc.IsClosedConn(err) {
 			lumber.Trace(box.Dict{
-				"module":  "producer",
-				"event":   "abort",
-				"message": err.Error(),
+				"module": "producer",
+				"event":  "abort",
+				"error":  err.Error(),
 			})
 			return
 		}
 
-		log.Error(err)
+		lumber.Error(box.Dict{
+			"module": "producer",
+			"event":  "error",
+			"error":  err.Error(),
+		})
 	})
 
 	x.OnError(rpc.Handle, func(err error) {
@@ -75,7 +77,11 @@ func NewProducer(queue *task.Queue, config Config) *Producer {
 			return
 		}
 
-		log.Error(err)
+		lumber.Error(box.Dict{
+			"module": "producer",
+			"event":  "error",
+			"error":  err.Error(),
+		})
 	})
 
 	return x

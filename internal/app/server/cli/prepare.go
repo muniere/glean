@@ -5,34 +5,34 @@ import (
 	"os"
 	"path"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 
 	"github.com/muniere/glean/internal/pkg/lumber"
 )
 
 func prepare(options *options) error {
 	if options.verbose {
-		log.SetLevel(log.TraceLevel)
+		logrus.SetLevel(logrus.TraceLevel)
 	} else {
-		log.SetLevel(log.InfoLevel)
+		logrus.SetLevel(logrus.InfoLevel)
 	}
 
 	if len(options.logDir) == 0 {
 		if err := prepareForConsoleLog(options); err != nil {
 			return err
 		}
-		base := &log.TextFormatter{
+		base := &logrus.TextFormatter{
 			DisableColors:    false,
 			DisableTimestamp: false,
 			FullTimestamp:    true,
 			TimestampFormat:  "15:04:05.000",
 		}
-		log.SetFormatter(&lumber.TextFormatter{base})
+		logrus.SetFormatter(&lumber.TextFormatter{base})
 	} else {
 		if err := prepareForFileLog(options); err != nil {
 			return err
 		}
-		base := &log.JSONFormatter{
+		base := &logrus.JSONFormatter{
 			TimestampFormat:  "15:04:05.000",
 			DisableTimestamp: false,
 			DataKey:          "fields",
@@ -40,21 +40,21 @@ func prepare(options *options) error {
 			CallerPrettyfier: nil,
 			PrettyPrint:      false,
 		}
-		log.SetFormatter(&lumber.JSONFormatter{base})
+		logrus.SetFormatter(&lumber.JSONFormatter{base})
 	}
 
 	return nil
 }
 
 func prepareForConsoleLog(options *options) error {
-	log.SetOutput(os.Stderr)
+	logrus.SetOutput(os.Stderr)
 	return nil
 }
 
 func prepareForFileLog(options *options) error {
 	var err error
 
-	log.SetOutput(ioutil.Discard)
+	logrus.SetOutput(ioutil.Discard)
 
 	err = prepareCmdFileLog(options)
 	if err != nil {
@@ -82,7 +82,7 @@ func prepareCmdFileLog(options *options) error {
 		return err
 	}
 
-	log.AddHook(lumber.NewFileHookWithFilter(file, log.AllLevels, func(entry *log.Entry) bool {
+	logrus.AddHook(lumber.NewFileHookWithFilter(file, logrus.AllLevels, func(entry *logrus.Entry) bool {
 		return entry.Data["command"] != nil
 	}))
 	return nil
@@ -96,7 +96,7 @@ func prepareOutFileLog(options *options) error {
 		return err
 	}
 
-	log.AddHook(lumber.NewFileHook(file, log.AllLevels))
+	logrus.AddHook(lumber.NewFileHook(file, logrus.AllLevels))
 	return nil
 }
 
@@ -108,10 +108,10 @@ func prepareErrFileLog(options *options) error {
 		return err
 	}
 
-	log.AddHook(lumber.NewFileHook(file, []log.Level{
-		log.WarnLevel,
-		log.ErrorLevel,
-		log.FatalLevel,
+	logrus.AddHook(lumber.NewFileHook(file, []logrus.Level{
+		logrus.WarnLevel,
+		logrus.ErrorLevel,
+		logrus.FatalLevel,
 	}))
 	return nil
 }

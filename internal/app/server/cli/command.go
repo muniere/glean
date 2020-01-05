@@ -4,8 +4,6 @@ import (
 	"os"
 	"syscall"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/spf13/cobra"
 
 	"github.com/muniere/glean/internal/app/server/pubsub"
@@ -56,7 +54,11 @@ func run(cmd *cobra.Command, args []string) error {
 	// start
 	err = manager.Start()
 	if err != nil {
-		log.Fatal(err)
+		lumber.Fatal(box.Dict{
+			"module": "root",
+			"event":  "start::error",
+			"error":  err,
+		})
 	}
 
 	// wait
@@ -65,8 +67,8 @@ func run(cmd *cobra.Command, args []string) error {
 		syscall.SIGTERM,
 	}
 	lumber.Info(box.Dict{
-		"module": "root",
-		"event":  "signal::wait",
+		"module":  "root",
+		"event":   "signal::wait",
 		"signals": signals.Join(sigs, ", "),
 	})
 
@@ -74,13 +76,17 @@ func run(cmd *cobra.Command, args []string) error {
 	lumber.Info(box.Dict{
 		"module": "root",
 		"event":  "signal::recv",
-		"signal":  sig.String(),
+		"signal": sig.String(),
 	})
 
 	// stop
 	err = manager.Stop()
 	if err != nil {
-		log.Error(err)
+		lumber.Fatal(box.Dict{
+			"module": "root",
+			"event":  "stop::error",
+			"error":  err,
+		})
 	}
 
 	lumber.Info(box.Dict{

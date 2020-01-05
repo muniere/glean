@@ -3,18 +3,18 @@ package shared
 import (
 	"os"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 func Prepare(options *Options) error {
 	if options.Verbose {
-		log.SetLevel(log.TraceLevel)
+		logrus.SetLevel(logrus.TraceLevel)
 	} else {
-		log.SetLevel(log.InfoLevel)
+		logrus.SetLevel(logrus.InfoLevel)
 	}
 
-	log.SetOutput(os.Stderr)
-	log.SetFormatter(&log.TextFormatter{
+	logrus.SetOutput(os.Stderr)
+	logrus.SetFormatter(&logrus.TextFormatter{
 		DisableColors:    false,
 		DisableTimestamp: false,
 		FullTimestamp:    true,

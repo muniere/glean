@@ -8,8 +8,6 @@ import (
 	"path/filepath"
 	"time"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/muniere/glean/internal/app/server/batch"
 	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/lumber"
@@ -126,7 +124,11 @@ func (x *Consumer) Spawn(config Config) {
 	}
 
 	recovery := func(err error) {
-		log.Error(err)
+		lumber.Error(box.Dict{
+			"module": "consumer",
+			"event":  "error",
+			"error":  err.Error(),
+		})
 	}
 
 	interval := 5 * time.Second

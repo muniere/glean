@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/muniere/glean/internal/app/server/batch/log"
+	"github.com/muniere/glean/internal/app/server/batch/lumber"
 	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/sys"
 )
@@ -51,18 +51,18 @@ func mkdir(options Options) error {
 	ctx := box.Dict{"path": options.Prefix}
 
 	if options.DryRun {
-		log.Skip(ctx)
+		lumber.Skip(ctx)
 		return nil
 	}
 
 	if sys.Exists(options.Prefix) {
-		log.Skip(ctx)
+		lumber.Skip(ctx)
 		return nil
 	}
 
-	log.Start(ctx)
+	lumber.Start(ctx)
 
-	defer log.Finish(ctx)
+	defer lumber.Finish(ctx)
 
 	return os.MkdirAll(options.Prefix, 0755)
 }
@@ -84,7 +84,7 @@ func launch(group *sync.WaitGroup, channel chan command, options Options) {
 				continue
 			}
 			if err != nil {
-				log.Warn(err)
+				lumber.Warn(err)
 			}
 
 			time.Sleep(options.Interval)
@@ -140,12 +140,12 @@ func compose(cmd command, options Options) context {
 
 func test(context context, options Options) error {
 	if options.DryRun {
-		log.SkipStep("download", context.dict())
+		lumber.SkipStep("download", context.dict())
 		return skipDownload
 	}
 
 	if !options.Overwrite && sys.Exists(context.path) {
-		log.SkipStep("download", context.dict())
+		lumber.SkipStep("download", context.dict())
 		return skipDownload
 	}
 
@@ -153,25 +153,25 @@ func test(context context, options Options) error {
 }
 
 func fetch(context context, options Options) (*http.Response, error) {
-	log.Start(context.dict())
+	lumber.Start(context.dict())
 
-	defer log.Finish(context.dict())
+	defer lumber.Finish(context.dict())
 
 	return http.Get(context.uri.String())
 }
 
 func touch(context context, options Options) (*os.File, error) {
-	log.Start(context.dict())
+	lumber.Start(context.dict())
 
-	defer log.Finish(context.dict())
+	defer lumber.Finish(context.dict())
 
 	return os.Create(context.path)
 }
 
 func save(dst io.Writer, src io.Reader, context context, options Options) error {
-	log.Start(context.dict())
+	lumber.Start(context.dict())
 
-	defer log.Start(context.dict())
+	defer lumber.Start(context.dict())
 
 	_, err := io.Copy(dst, src)
 	return err
