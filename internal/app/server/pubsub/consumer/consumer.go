@@ -116,12 +116,7 @@ func (x *Consumer) Spawn(config Config) {
 	}
 
 	action := func(job task.Job, meta task.Meta) error {
-		lumber.Info(box.Dict{
-			"module": "consumer",
-			"event":  "job::consume",
-			"job":    job,
-			"meta":   meta,
-		})
+		lumber.Info(box.Dict{"module": "consumer", "event": "job::consume", "job": job, "meta": meta})
 
 		uri, err := url.Parse(job.URI)
 		if err != nil {
@@ -139,11 +134,7 @@ func (x *Consumer) Spawn(config Config) {
 	}
 
 	recovery := func(err error) {
-		lumber.Error(box.Dict{
-			"module": "consumer",
-			"event":  "error",
-			"error":  err.Error(),
-		})
+		lumber.Error(box.Dict{"module": "consumer", "event": "error", "error": err.Error()})
 	}
 
 	interval := 5 * time.Second
@@ -152,18 +143,12 @@ func (x *Consumer) Spawn(config Config) {
 }
 
 func (x *Consumer) Start() error {
-	lumber.Info(box.Dict{
-		"module": "consumer",
-		"event":  "start",
-	})
+	lumber.Info(box.Dict{"module": "consumer", "event": "start"})
 	return x.guild.Start()
 }
 
 func (x *Consumer) Stop() error {
-	lumber.Info(box.Dict{
-		"module": "consumer",
-		"event":  "stop",
-	})
+	lumber.Info(box.Dict{"module": "consumer", "event": "stop"})
 	return x.guild.Stop()
 }
 

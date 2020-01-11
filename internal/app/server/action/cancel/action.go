@@ -21,11 +21,7 @@ func Perform(ctx *shared.Context) error {
 		})
 	}
 
-	lumber.Info(box.Dict{
-		"module": "producer",
-		"event":  "job::cancel",
-		"job":    job,
-	})
+	lumber.Info(box.Dict{"module": "producer", "event": "job::cancel", "job": job})
 
 	return ctx.Gateway.Success(job)
 }

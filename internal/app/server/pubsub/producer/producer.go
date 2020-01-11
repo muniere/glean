@@ -36,70 +36,42 @@ func NewProducer(queue *task.Queue, config Config) *Producer {
 	x.RegisterDefault(action.Fallback)
 
 	x.OnRequest(func(request *rpc.Request) {
-		lumber.Info(box.Dict{
-			"module":  "producer",
-			"event":   "request",
-			"command": request.Action,
-		})
+		lumber.Info(box.Dict{"module": "producer", "event": "request", "command": request.Action})
 	})
 
 	x.OnError(rpc.Accept, func(err error) {
 		if rpc.IsClosedConn(err) {
-			lumber.Trace(box.Dict{
-				"module": "producer",
-				"event":  "abort",
-				"error":  err.Error(),
-			})
+			lumber.Trace(box.Dict{"module": "producer", "event": "abort", "error": err.Error()})
 			return
 		}
 
-		lumber.Error(box.Dict{
-			"module": "producer",
-			"event":  "error",
-			"error":  err.Error(),
-		})
+		lumber.Error(box.Dict{"module": "producer", "event": "error", "error": err.Error()})
 	})
 
 	x.OnError(rpc.Handle, func(err error) {
 		if rpc.IsTimeout(err) {
-			lumber.Trace(box.Dict{
-				"module": "producer",
-				"event":  "poll.timeout",
-			})
+			lumber.Trace(box.Dict{"module": "producer", "event": "poll.timeout"})
 			return
 		}
 
 		if rpc.IsEOF(err) {
-			lumber.Trace(box.Dict{
-				"module": "producer",
-				"event":  "poll.eof",
-			})
+			lumber.Trace(box.Dict{"module": "producer", "event": "poll.eof"})
 			return
 		}
 
-		lumber.Error(box.Dict{
-			"module": "producer",
-			"event":  "error",
-			"error":  err.Error(),
-		})
+		lumber.Error(box.Dict{"module": "producer", "event": "error", "error": err.Error()})
 	})
 
 	return x
 }
 
 func (x *Producer) Start() error {
-	lumber.Info(box.Dict{
-		"module": "producer",
-		"event":  "start",
-	})
+	lumber.Info(box.Dict{"module": "producer", "event": "start"})
 	return x.daemon.Start()
 }
 
 func (x *Producer) Stop() error {
-	lumber.Info(box.Dict{
-		"module": "producer",
-		"event":  "stop",
-	})
+	lumber.Info(box.Dict{"module": "producer", "event": "stop"})
 	return x.daemon.Stop()
 }
 
