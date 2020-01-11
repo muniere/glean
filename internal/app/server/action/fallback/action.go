@@ -1,9 +1,13 @@
 package fallback
 
 import (
-	"github.com/muniere/glean/internal/app/server/action/shared"
+	pubsub "github.com/muniere/glean/internal/app/server/pubsub/axiom"
 )
 
-func Perform(ctx *shared.Context) error {
-	return ctx.Gateway.Error(nil)
+func NewAction() *pubsub.Action {
+	return &pubsub.Action{
+		Handler: func(ctx *pubsub.Context) error {
+			return ctx.Gateway.Error(nil)
+		},
+	}
 }

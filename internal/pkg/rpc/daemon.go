@@ -19,10 +19,21 @@ const (
 	Handle
 )
 
-type Proc func(*Request, *Gateway) error
-type RequestHook func(*Request)
-type ResponseHook func(*Request)
-type ErrorHook func(error)
+type Action interface {
+	Invoke(*Request, *Gateway) error
+}
+
+type RequestHook interface {
+	Invoke(*Request) error
+}
+
+type ResponseHook interface {
+	Invoke(*Request) error
+}
+
+type ErrorHook interface {
+	Invoke(error)
+}
 
 type Daemon struct {
 	Address       string
@@ -31,8 +42,8 @@ type Daemon struct {
 	ReadTimeout   time.Duration
 	WriteTimeout  time.Duration
 	listener      net.Listener
-	actions       map[string]Proc
-	fallback      Proc
+	actions       map[string]Action
+	fallback      Action
 	requestHooks  []RequestHook
 	responseHooks []ResponseHook
 	errorHooks    map[Phase][]ErrorHook
@@ -47,7 +58,7 @@ func NewDaemon(addr string, port int) *Daemon {
 		ReadTimeout:   1 * time.Second,
 		WriteTimeout:  1 * time.Second,
 		listener:      nil,
-		actions:       map[string]Proc{},
+		actions:       map[string]Action{},
 		fallback:      nil,
 		requestHooks:  []RequestHook{},
 		responseHooks: []ResponseHook{},
@@ -65,10 +76,10 @@ func (d *Daemon) OnResponse(hook ResponseHook) {
 }
 
 func (d *Daemon) OnError(phase Phase, hook ErrorHook) {
-	d.errorHooks[phase] = append(d.subErrorHooks(phase), hook)
+	d.errorHooks[phase] = append(d.subscriptErrorHooks(phase), hook)
 }
 
-func (d *Daemon) subErrorHooks(phase Phase) []ErrorHook {
+func (d *Daemon) subscriptErrorHooks(phase Phase) []ErrorHook {
 	arr, ok := d.errorHooks[phase]
 	if ok {
 		return arr
@@ -77,19 +88,19 @@ func (d *Daemon) subErrorHooks(phase Phase) []ErrorHook {
 	}
 }
 
-func (d *Daemon) Register(key string, proc Proc) {
-	d.actions[key] = proc
+func (d *Daemon) Register(key string, action Action) {
+	d.actions[key] = action
 }
 
 func (d *Daemon) Unregister(key string) {
 	delete(d.actions, key)
 }
 
-func (d *Daemon) RegisterDefault(proc Proc) {
-	d.fallback = proc
+func (d *Daemon) RegisterDefault(action Action) {
+	d.fallback = action
 }
 
-func (d *Daemon) UnregisterDefault(proc Proc) {
+func (d *Daemon) UnregisterDefault() {
 	d.fallback = nil
 }
 
@@ -111,12 +122,10 @@ func (d *Daemon) Start() error {
 
 			if err == nil {
 				continue
+			} else {
+				d.hookError(Accept, err)
+				break
 			}
-
-			for _, hook := range d.subErrorHooks(Accept) {
-				hook(err)
-			}
-			break
 		}
 	}()
 
@@ -146,12 +155,10 @@ func (d *Daemon) accept() error {
 
 		if err == nil {
 			return
+		} else {
+			d.hookError(Handle, err)
+			return
 		}
-
-		for _, hook := range d.subErrorHooks(Handle) {
-			hook(err)
-		}
-		return
 	}()
 
 	return nil
@@ -175,16 +182,16 @@ func (d *Daemon) handle(con net.Conn) error {
 	}
 
 	// response
-	for _, hook := range d.requestHooks {
-		hook(&request)
+	if err := d.hookRequest(&request); err != nil {
+		return err
 	}
 
 	if err := d.perform(&request, NewGateway(con)); err != nil {
 		return err
 	}
 
-	for _, hook := range d.responseHooks {
-		hook(&request)
+	if err := d.hookResponse(&request); err != nil {
+		return err
 	}
 
 	return nil
@@ -194,12 +201,37 @@ func (d *Daemon) perform(request *Request, gateway *Gateway) error {
 	action, ok := d.actions[request.Action]
 
 	if ok {
-		return action(request, gateway)
+		return action.Invoke(request, gateway)
 	}
 
 	if d.fallback != nil {
-		return d.fallback(request, gateway)
+		return d.fallback.Invoke(request, gateway)
 	}
 
 	return errors.New(fmt.Sprintf("unsupported aciton: %s", request.Action))
 }
+
+func (d *Daemon) hookRequest(req *Request) error {
+	for _, hook := range d.requestHooks {
+		if err := hook.Invoke(req); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (d *Daemon) hookResponse(req *Request) error {
+	for _, hook := range d.responseHooks {
+		if err := hook.Invoke(req); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (d *Daemon) hookError(phase Phase, err error) {
+	for _, hook := range d.subscriptErrorHooks(phase) {
+		hook.Invoke(err)
+	}
+}
+
