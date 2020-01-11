@@ -12,13 +12,40 @@ import (
 	"gopkg.in/xmlpath.v2"
 
 	"github.com/muniere/glean/internal/app/server/batch/lumber"
+	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/urls"
 )
+
+//
+// Struct
+//
+type Options struct {
+	Grep *regexp.Regexp
+}
+
+type SiteInfo struct {
+	URI   *url.URL
+	Title string
+	Links []*url.URL
+}
 
 type command struct {
 	uri *url.URL
 }
 
+type context struct {
+	uri *url.URL
+}
+
+func (c *context) dict() box.Dict {
+	return box.Dict{
+		"uri": c.uri.String(),
+	}
+}
+
+//
+// Action
+//
 func Perform(uri *url.URL, options Options) (*SiteInfo, error) {
 	cmd := command{uri: uri}
 	ctx := compose(cmd, options)

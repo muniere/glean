@@ -20,14 +20,56 @@ import (
 	"github.com/muniere/glean/internal/pkg/sys"
 )
 
+//
+// Error
+//
 var skipDownload = errors.New("skip download")
 var dataTooSmall = errors.New("data too small")
 var dataTooLarge = errors.New("data too large")
+
+//
+// Struct
+//
+type Options struct {
+	Prefix      string
+	Concurrency int
+	MinWidth    int
+	MaxWidth    int
+	MinHeight   int
+	MaxHeight   int
+	Blocking    bool
+	Overwrite   bool
+	DryRun      bool
+	Interval    time.Duration
+}
 
 type command struct {
 	uri *url.URL
 }
 
+type context struct {
+	uri  *url.URL
+	temp string
+	path string
+}
+
+func (c *context) dict() box.Dict {
+	dict := box.Dict{}
+	if c.uri != nil {
+		dict["uri"] = c.uri.String()
+	}
+	if len(c.temp) > 0 {
+		dict["temp"] = c.temp
+	}
+	if len(c.path) > 0 {
+		dict["path"] = c.path
+	}
+	return dict
+}
+
+//
+// Action / Supervisor
+//
 func Perform(urls []*url.URL, options Options) error {
 	// prepare
 	if err := mkdir(options); err != nil {
@@ -74,6 +116,9 @@ func mkdir(options Options) error {
 	return os.MkdirAll(options.Prefix, 0755)
 }
 
+//
+// Action / Worker
+//
 func launch(group *sync.WaitGroup, channel chan command, options Options) {
 	group.Add(1)
 
