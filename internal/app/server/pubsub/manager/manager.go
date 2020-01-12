@@ -6,7 +6,7 @@ import (
 	"github.com/muniere/glean/internal/app/server/action/fallback"
 	"github.com/muniere/glean/internal/app/server/action/scrape"
 	"github.com/muniere/glean/internal/app/server/action/status"
-	. "github.com/muniere/glean/internal/app/server/pubsub/axiom"
+	pubsub "github.com/muniere/glean/internal/app/server/pubsub/axiom"
 	"github.com/muniere/glean/internal/app/server/pubsub/consumer"
 	"github.com/muniere/glean/internal/app/server/pubsub/producer"
 	"github.com/muniere/glean/internal/pkg/rpc"
@@ -61,7 +61,7 @@ func NewManager(config Config) *Manager {
 	p.RegisterAction(rpc.Cancel, cancel.NewAction())
 	p.RegisterDefaultAction(fallback.NewAction())
 
-	p.RegisterHandler(rpc.Config, func(ctx *Context) error {
+	p.RegisterHandler(rpc.Config, func(ctx *pubsub.Context) error {
 		return ctx.Gateway.Success(config)
 	})
 

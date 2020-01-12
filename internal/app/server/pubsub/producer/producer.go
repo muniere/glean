@@ -1,7 +1,7 @@
 package producer
 
 import (
-	. "github.com/muniere/glean/internal/app/server/pubsub/axiom"
+	pubsub "github.com/muniere/glean/internal/app/server/pubsub/axiom"
 	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/lumber"
 	"github.com/muniere/glean/internal/pkg/rpc"
@@ -16,45 +16,6 @@ type Producer struct {
 type Config struct {
 	Address string
 	Port    int
-}
-
-type actionAdapter struct {
-	action *Action
-	queue  *task.Queue
-}
-
-func (w *actionAdapter) Invoke(req *rpc.Request, gateway *rpc.Gateway) error {
-	return w.action.Handler(
-		&Context{
-			Request: req,
-			Gateway: gateway,
-			Queue: w.queue,
-		},
-	)
-}
-
-type requestHookAdapter struct {
-	hook *RequestHook
-}
-
-func (w *requestHookAdapter) Invoke(req *rpc.Request) error {
-	return w.hook.Handler(req)
-}
-
-type responseHookAdapter struct {
-	hook *ResponseHook
-}
-
-func (w *responseHookAdapter) Invoke(req *rpc.Request) error {
-	return w.hook.Handler(req)
-}
-
-type errorHookAdapter struct {
-	hook *ErrorHook
-}
-
-func (w *errorHookAdapter) Invoke(err error) {
-	w.hook.Handler(err)
 }
 
 func NewProducer(queue *task.Queue, config Config) *Producer {
@@ -108,42 +69,42 @@ func (x *Producer) Wait() {
 	x.daemon.Wait()
 }
 
-func (x *Producer) RegisterRequestHook(hook *RequestHook) {
+func (x *Producer) RegisterRequestHook(hook *pubsub.RequestHook) {
 	x.daemon.OnRequest(&requestHookAdapter{hook})
 }
 
 func (x *Producer) RegisterRequestHandler(handler func(req *rpc.Request) error) {
-	x.daemon.OnRequest(&requestHookAdapter{&RequestHook{Handler: handler}})
+	x.daemon.OnRequest(&requestHookAdapter{&pubsub.RequestHook{Handler: handler}})
 }
 
-func (x *Producer) RegisterResponseHook(hook *ResponseHook) {
+func (x *Producer) RegisterResponseHook(hook *pubsub.ResponseHook) {
 	x.daemon.OnResponse(&responseHookAdapter{hook})
 }
 
 func (x *Producer) RegisterResponseHandler(handler func(req *rpc.Request) error) {
-	x.daemon.OnResponse(&responseHookAdapter{&ResponseHook{Handler: handler}})
+	x.daemon.OnResponse(&responseHookAdapter{&pubsub.ResponseHook{Handler: handler}})
 }
 
-func (x *Producer) RegisterErrorHook(phase rpc.Phase, hook *ErrorHook) {
+func (x *Producer) RegisterErrorHook(phase rpc.Phase, hook *pubsub.ErrorHook) {
 	x.daemon.OnError(phase, &errorHookAdapter{hook})
 }
 
 func (x *Producer) RegisterErrorHandler(phase rpc.Phase, handler func(err error)) {
-	x.daemon.OnError(phase, &errorHookAdapter{&ErrorHook{Handler: handler}})
+	x.daemon.OnError(phase, &errorHookAdapter{&pubsub.ErrorHook{Handler: handler}})
 }
 
-func (x *Producer) RegisterAction(key string, action *Action) {
+func (x *Producer) RegisterAction(key string, action *pubsub.Action) {
 	x.daemon.Register(key, &actionAdapter{action, x.queue})
 }
 
-func (x *Producer) RegisterHandler(key string, handler func(ctx *Context) error) {
-	x.daemon.Register(key, &actionAdapter{&Action{Handler: handler}, x.queue})
+func (x *Producer) RegisterHandler(key string, handler func(ctx *pubsub.Context) error) {
+	x.daemon.Register(key, &actionAdapter{&pubsub.Action{Handler: handler}, x.queue})
 }
 
-func (x *Producer) RegisterDefaultAction(action *Action) {
+func (x *Producer) RegisterDefaultAction(action *pubsub.Action) {
 	x.daemon.RegisterDefault(&actionAdapter{action, x.queue})
 }
 
-func (x *Producer) RegisterDefaultHandler(handler func(ctx *Context) error) {
-	x.daemon.RegisterDefault(&actionAdapter{&Action{Handler: handler}, x.queue})
+func (x *Producer) RegisterDefaultHandler(handler func(ctx *pubsub.Context) error) {
+	x.daemon.RegisterDefault(&actionAdapter{&pubsub.Action{Handler: handler}, x.queue})
 }

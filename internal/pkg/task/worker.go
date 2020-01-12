@@ -6,8 +6,13 @@ import (
 	"time"
 )
 
-type Action func(Job, Meta) error
-type Recovery func(error)
+type Action interface {
+	Invoke(Job, Meta) error
+}
+
+type Recovery interface {
+	Invoke(error)
+}
 
 var AlreadyRunning = errors.New("already running")
 var NotRunning = errors.New("not running")
@@ -45,8 +50,8 @@ func (w *worker) start() error {
 				Timestamp: time.Now(),
 			}
 
-			if err := w.action(job, meta); err != nil {
-				w.recovery(err)
+			if err := w.action.Invoke(job, meta); err != nil {
+				w.recovery.Invoke(err)
 				continue
 			}
 
