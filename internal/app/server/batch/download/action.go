@@ -11,12 +11,12 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path/filepath"
 	"sync"
 	"time"
 
 	"github.com/muniere/glean/internal/app/server/batch/lumber"
 	"github.com/muniere/glean/internal/pkg/box"
+	"github.com/muniere/glean/internal/pkg/pathname"
 	"github.com/muniere/glean/internal/pkg/sys"
 )
 
@@ -192,17 +192,13 @@ func run(cmd command, options Options) error {
 }
 
 func compose(cmd command, options Options) context {
-	base := filepath.Base(cmd.uri.String())
+	path := pathname.New(cmd.uri.String()).Base()
 
-	var path string
-
-	if options.Prefix != "" {
-		path = filepath.Join(options.Prefix, base)
-	} else {
-		path = base
+	if len(options.Prefix) > 0 {
+		path = path.Prepend(options.Prefix)
 	}
 
-	return context{uri: cmd.uri, path: path}
+	return context{uri: cmd.uri, path: path.String()}
 }
 
 func preCondition(ctx context, options Options) error {
@@ -230,7 +226,7 @@ func save(src io.Reader, ctx context, options Options) (string, error) {
 
 	defer lumber.Finish(ctx.dict())
 
-	f, err := ioutil.TempFile("", filepath.Base(ctx.path))
+	f, err := ioutil.TempFile("", pathname.Base(ctx.path))
 	if err != nil {
 		return "", err
 	}

@@ -4,12 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"path/filepath"
 	"time"
 
 	"github.com/muniere/glean/internal/app/server/batch"
 	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/lumber"
+	"github.com/muniere/glean/internal/pkg/pathname"
 	"github.com/muniere/glean/internal/pkg/rpc"
 	"github.com/muniere/glean/internal/pkg/task"
 )
@@ -45,23 +45,22 @@ func (x *actionAdapter) scrape(uri *url.URL, prefix string) error {
 		return err
 	}
 
-	var pref string
-	if len(prefix) > 0 {
-		if filepath.IsAbs(prefix) {
-			pref = prefix
-		} else {
-			pref = filepath.Join(x.config.DataDir, prefix)
+	p := func() *pathname.Pathname {
+		if len(prefix) > 0 && pathname.IsAbs(prefix) {
+			return pathname.New(prefix)
 		}
-	} else {
+		if len(prefix) > 0 {
+			return pathname.New(x.config.DataDir).Append(prefix)
+		}
 		if len(info.Title) > 0 {
-			pref = filepath.Join(x.config.DataDir, info.Title)
+			return pathname.New(x.config.DataDir).Append(info.Title)
 		} else {
-			pref = filepath.Join(x.config.DataDir, url.QueryEscape(uri.String()))
+			return pathname.New(x.config.DataDir).Append(url.QueryEscape(uri.String()))
 		}
-	}
+	}()
 
 	opts := batch.DownloadOptions{
-		Prefix:      pref,
+		Prefix:      p.String(),
 		Concurrency: x.config.Concurrency,
 		MinWidth:    x.config.MinWidth,
 		MaxWidth:    x.config.MaxWidth,
@@ -82,19 +81,18 @@ func (x *actionAdapter) clutch(uri *url.URL, prefix string) error {
 		return err
 	}
 
-	var pref string
-	if len(prefix) > 0 {
-		if filepath.IsAbs(prefix) {
-			pref = prefix
-		} else {
-			pref = filepath.Join(x.config.DataDir, prefix)
+	p := func() *pathname.Pathname {
+		if len(prefix) > 0 && pathname.IsAbs(prefix) {
+			return pathname.New(prefix)
 		}
-	} else {
-		pref = filepath.Join(x.config.DataDir, url.QueryEscape(uri.String()))
-	}
+		if len(prefix) > 0 {
+			return pathname.New(x.config.DataDir).Append(prefix)
+		}
+		return pathname.New(x.config.DataDir).Append(url.QueryEscape(uri.String()))
+	}()
 
 	opts := batch.DownloadOptions{
-		Prefix:      pref,
+		Prefix:      p.String(),
 		Concurrency: x.config.Concurrency,
 		MinWidth:    x.config.MinWidth,
 		MaxWidth:    x.config.MaxWidth,

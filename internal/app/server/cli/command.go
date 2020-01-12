@@ -3,7 +3,6 @@ package cli
 import (
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"syscall"
 
 	"github.com/sirupsen/logrus"
@@ -13,6 +12,7 @@ import (
 	pubsub "github.com/muniere/glean/internal/app/server/pubsub/manager"
 	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/lumber"
+	"github.com/muniere/glean/internal/pkg/pathname"
 	"github.com/muniere/glean/internal/pkg/rpc"
 	"github.com/muniere/glean/internal/pkg/signals"
 	"github.com/muniere/glean/internal/pkg/task"
@@ -267,7 +267,7 @@ func prepareForFileLog(ctx context) error {
 
 func prepareCmdFileLog(ctx context) error {
 	file, err := os.OpenFile(
-		filepath.Join(ctx.options.logDir, cmdLogName), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644,
+		pathname.Join(ctx.options.logDir, cmdLogName), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644,
 	)
 	if err != nil {
 		return err
@@ -281,7 +281,7 @@ func prepareCmdFileLog(ctx context) error {
 
 func prepareOutFileLog(ctx context) error {
 	file, err := os.OpenFile(
-		filepath.Join(ctx.options.logDir, outLogName), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644,
+		pathname.Join(ctx.options.logDir, outLogName), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644,
 	)
 	if err != nil {
 		return err
@@ -293,7 +293,7 @@ func prepareOutFileLog(ctx context) error {
 
 func prepareErrFileLog(ctx context) error {
 	file, err := os.OpenFile(
-		filepath.Join(ctx.options.logDir, errLogName), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644,
+		pathname.Join(ctx.options.logDir, errLogName), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644,
 	)
 	if err != nil {
 		return err

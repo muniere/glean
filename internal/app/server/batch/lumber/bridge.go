@@ -1,14 +1,13 @@
 package lumber
 
 import (
-	"path"
-	"path/filepath"
 	"runtime"
 	"strings"
 
 	"github.com/sirupsen/logrus"
 
 	"github.com/muniere/glean/internal/pkg/box"
+	"github.com/muniere/glean/internal/pkg/pathname"
 )
 
 func Warn(err error) {
@@ -56,7 +55,7 @@ func t(context box.Dict, step string, suffix string) logrus.Fields {
 
 	x := logrus.Fields{
 		"module":  "batch",
-		"file":    filepath.Join(path.Base(path.Dir(file)), path.Base(file)),
+		"file":    pathname.MustLeaf(file, 2),
 		"line":    line,
 		"context": context,
 	}
@@ -78,7 +77,7 @@ func w(context box.Dict) logrus.Fields {
 
 	return logrus.Fields{
 		"module":  "batch",
-		"file":    filepath.Join(path.Base(path.Dir(file)), path.Base(file)),
+		"file":    pathname.MustLeaf(file, 2),
 		"line":    line,
 		"context": context,
 	}

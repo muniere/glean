@@ -1,13 +1,12 @@
 package lumber
 
 import (
-	"path"
-	"path/filepath"
 	"runtime"
 
 	"github.com/sirupsen/logrus"
 
 	"github.com/muniere/glean/internal/pkg/box"
+	"github.com/muniere/glean/internal/pkg/pathname"
 )
 
 func Trace(values box.Dict) {
@@ -54,7 +53,7 @@ func t(values box.Dict) logrus.Fields {
 	_, file, line, _ := runtime.Caller(2)
 
 	if !vf {
-		x["file"] = filepath.Join(path.Base(path.Dir(file)), path.Base(file))
+		x["file"] = pathname.MustLeaf(file, 2)
 	}
 	if !vl {
 		x["line"] = line
