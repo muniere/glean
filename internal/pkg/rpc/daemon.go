@@ -12,11 +12,17 @@ import (
 	"github.com/muniere/glean/internal/pkg/jsonic"
 )
 
-type Phase int
+type Phase struct {
+	name string
+}
 
-const (
-	Accept = iota
-	Handle
+func (p *Phase) String() string {
+	return p.name
+}
+
+var (
+	Accept = Phase{"accept"}
+	Handle = Phase{"handle"}
 )
 
 type Action interface {
@@ -234,4 +240,3 @@ func (d *Daemon) hookError(phase Phase, err error) {
 		hook.Invoke(err)
 	}
 }
-
