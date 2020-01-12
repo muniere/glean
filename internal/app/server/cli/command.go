@@ -80,32 +80,29 @@ func run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	lumber.Info(Dict{"module": "root", "event": "start", "pid": os.Getpid()})
+	lumber.Info(NewDict(Pair("module", "root"), Pair("event", "start"), Pair("pid", os.Getpid())))
 
 	// build
 	manager := pubsub.NewManager(translate(ctx.options))
 
 	// start
 	if err = manager.Start(); err != nil {
-		lumber.Fatal(Dict{"module": "root", "event": "start::error", "error": err})
+		lumber.Fatal(NewDict(Pair("module", "root"), Pair("event", "start::error"), Pair("error", err)))
 	}
 
 	// wait
-	sigs := []os.Signal{
-		syscall.SIGINT,
-		syscall.SIGTERM,
-	}
-	lumber.Info(Dict{"module": "root", "event": "signal::wait", "signals": signals.Join(sigs, ", ")})
+	sigs := []os.Signal{syscall.SIGINT, syscall.SIGTERM}
+	lumber.Info(NewDict(Pair("module", "root"), Pair("event", "signal::wait"), Pair("signals", signals.Join(sigs, ", "))))
 
 	sig := signals.Wait(sigs...)
-	lumber.Info(Dict{"module": "root", "event": "signal::recv", "signal": sig.String()})
+	lumber.Info(NewDict(Pair("module", "root"), Pair("event", "signal::recv"), Pair("signal", sig.String())))
 
 	// stop
 	if err := manager.Stop(); err != nil {
-		lumber.Fatal(Dict{"module": "root", "event": "stop::error", "error": err})
+		lumber.Fatal(NewDict(Pair("module", "root"), Pair("event", "stop::error"), Pair("error", err)))
 	}
 
-	lumber.Info(Dict{"module": "root", "event": "stop", "pid": os.Getpid()})
+	lumber.Info(NewDict(Pair("module", "root"), Pair("event", "stop"), Pair("pid", os.Getpid())))
 
 	return nil
 }

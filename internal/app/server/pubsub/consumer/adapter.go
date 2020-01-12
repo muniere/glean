@@ -22,7 +22,7 @@ type actionAdapter struct {
 }
 
 func (x *actionAdapter) Invoke(job task.Job, meta task.Meta) error {
-	lumber.Info(Dict{"module": "consumer", "event": "job::consume", "job": job, "meta": meta})
+	lumber.Info(NewDict(Pair("module", "consumer"), Pair("event", "job::consume"), Pair("job", job), Pair("meta", meta)))
 
 	uri, err := url.Parse(job.URI)
 	if err != nil {
@@ -115,5 +115,5 @@ type recoveryAdapter struct {
 }
 
 func (x *recoveryAdapter) Invoke(err error) {
-	lumber.Error(Dict{"module": "consumer", "event": "error", "error": err.Error()})
+	lumber.Error(NewDict(Pair("module", "consumer"), Pair("event", "error"), Pair("error", err.Error())))
 }

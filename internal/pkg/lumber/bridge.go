@@ -39,12 +39,12 @@ func Fatal(values Dict) {
 
 func t(values Dict) logrus.Fields {
 	x := logrus.Fields{}
-	for k, v := range values {
+	for k, v := range values.Values() {
 		x[k] = v
 	}
 
-	_, vf := values["file"]
-	_, vl := values["line"]
+	vf := values.Has("file")
+	vl := values.Has("line")
 
 	if vf && vl {
 		return x

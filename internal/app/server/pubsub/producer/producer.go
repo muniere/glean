@@ -25,43 +25,43 @@ func NewProducer(queue *task.Queue, config Config) *Producer {
 	}
 
 	x.RegisterRequestHandler(func(request *rpc.Request) error {
-		lumber.Info(Dict{"module": "producer", "event": "request", "command": request.Action})
+		lumber.Info(NewDict(Pair("module", "producer"), Pair("event", "request"), Pair("command", request.Action)))
 		return nil
 	})
 
 	x.RegisterErrorHandler(rpc.Accept, func(err error) {
 		if rpc.IsClosedConn(err) {
-			lumber.Trace(Dict{"module": "producer", "event": "abort", "error": err.Error()})
+			lumber.Trace(NewDict(Pair("module", "producer"), Pair("event", "abort"), Pair("error", err.Error())))
 			return
 		}
 
-		lumber.Error(Dict{"module": "producer", "event": "error", "error": err.Error()})
+		lumber.Error(NewDict(Pair("module", "producer"), Pair("event", "error"), Pair("error", err.Error())))
 	})
 
 	x.RegisterErrorHandler(rpc.Handle, func(err error) {
 		if rpc.IsTimeout(err) {
-			lumber.Trace(Dict{"module": "producer", "event": "poll.timeout"})
+			lumber.Trace(NewDict(Pair("module", "producer"), Pair("event", "poll.timeout")))
 			return
 		}
 
 		if rpc.IsEOF(err) {
-			lumber.Trace(Dict{"module": "producer", "event": "poll.eof"})
+			lumber.Trace(NewDict(Pair("module", "producer"), Pair("event", "poll.eof")))
 			return
 		}
 
-		lumber.Error(Dict{"module": "producer", "event": "error", "error": err.Error()})
+		lumber.Error(NewDict(Pair("module", "producer"), Pair("event", "error"), Pair("error", err.Error())))
 	})
 
 	return x
 }
 
 func (x *Producer) Start() error {
-	lumber.Info(Dict{"module": "producer", "event": "start"})
+	lumber.Info(NewDict(Pair("module", "producer"), Pair("event", "start")))
 	return x.daemon.Start()
 }
 
 func (x *Producer) Stop() error {
-	lumber.Info(Dict{"module": "producer", "event": "stop"})
+	lumber.Info(NewDict(Pair("module", "producer"), Pair("event", "stop")))
 	return x.daemon.Stop()
 }
 

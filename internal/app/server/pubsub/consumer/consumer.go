@@ -48,12 +48,12 @@ func (x *Consumer) Spawn(config Config) {
 }
 
 func (x *Consumer) Start() error {
-	lumber.Info(Dict{"module": "consumer", "event": "start"})
+	lumber.Info(NewDict(Pair("module", "consumer"), Pair("event", "start")))
 	return x.guild.Start()
 }
 
 func (x *Consumer) Stop() error {
-	lumber.Info(Dict{"module": "consumer", "event": "stop"})
+	lumber.Info(NewDict(Pair("module", "consumer"), Pair("event", "stop")))
 	return x.guild.Stop()
 }
 

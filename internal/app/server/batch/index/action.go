@@ -38,9 +38,9 @@ type context struct {
 }
 
 func (c *context) dict() Dict {
-	return Dict{
-		"uri": c.uri.String(),
-	}
+	return NewDict(
+		Pair("uri", c.uri.String()),
+	)
 }
 
 //

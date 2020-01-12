@@ -54,15 +54,15 @@ type context struct {
 }
 
 func (c *context) dict() Dict {
-	dict := Dict{}
+	dict := NewDict()
 	if c.uri != nil {
-		dict["uri"] = c.uri.String()
+		dict.Put("uri", c.uri.String())
 	}
 	if len(c.temp) > 0 {
-		dict["temp"] = c.temp
+		dict.Put("temp", c.temp)
 	}
 	if len(c.path) > 0 {
-		dict["path"] = c.path
+		dict.Put("path", c.path)
 	}
 	return dict
 }
@@ -97,7 +97,9 @@ func Perform(urls []*url.URL, options Options) error {
 }
 
 func mkdir(options Options) error {
-	ctx := Dict{"path": options.Prefix}
+	ctx := NewDict(
+		Pair("path", options.Prefix),
+	)
 
 	if options.DryRun {
 		lumber.Skip(ctx)

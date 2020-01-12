@@ -27,7 +27,7 @@ func perform(ctx *pubsub.Context) error {
 		})
 	}
 
-	lumber.Info(Dict{"module": "producer", "event": "job::cancel", "job": job})
+	lumber.Info(NewDict(Pair("module", "producer"), Pair("event", "job::cancel"), Pair("job", job)))
 
 	return ctx.Gateway.Success(job)
 }
