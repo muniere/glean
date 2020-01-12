@@ -10,11 +10,11 @@ import (
 	"github.com/spf13/pflag"
 
 	pubsub "github.com/muniere/glean/internal/app/server/pubsub/manager"
-	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/lumber"
 	"github.com/muniere/glean/internal/pkg/pathname"
 	"github.com/muniere/glean/internal/pkg/rpc"
 	"github.com/muniere/glean/internal/pkg/signals"
+	. "github.com/muniere/glean/internal/pkg/stdlib"
 	"github.com/muniere/glean/internal/pkg/task"
 )
 
@@ -80,14 +80,14 @@ func run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	lumber.Info(box.Dict{"module": "root", "event": "start", "pid": os.Getpid()})
+	lumber.Info(Dict{"module": "root", "event": "start", "pid": os.Getpid()})
 
 	// build
 	manager := pubsub.NewManager(translate(ctx.options))
 
 	// start
 	if err = manager.Start(); err != nil {
-		lumber.Fatal(box.Dict{"module": "root", "event": "start::error", "error": err})
+		lumber.Fatal(Dict{"module": "root", "event": "start::error", "error": err})
 	}
 
 	// wait
@@ -95,17 +95,17 @@ func run(cmd *cobra.Command, args []string) error {
 		syscall.SIGINT,
 		syscall.SIGTERM,
 	}
-	lumber.Info(box.Dict{"module": "root", "event": "signal::wait", "signals": signals.Join(sigs, ", ")})
+	lumber.Info(Dict{"module": "root", "event": "signal::wait", "signals": signals.Join(sigs, ", ")})
 
 	sig := signals.Wait(sigs...)
-	lumber.Info(box.Dict{"module": "root", "event": "signal::recv", "signal": sig.String()})
+	lumber.Info(Dict{"module": "root", "event": "signal::recv", "signal": sig.String()})
 
 	// stop
 	if err := manager.Stop(); err != nil {
-		lumber.Fatal(box.Dict{"module": "root", "event": "stop::error", "error": err})
+		lumber.Fatal(Dict{"module": "root", "event": "stop::error", "error": err})
 	}
 
-	lumber.Info(box.Dict{"module": "root", "event": "stop", "pid": os.Getpid()})
+	lumber.Info(Dict{"module": "root", "event": "stop", "pid": os.Getpid()})
 
 	return nil
 }

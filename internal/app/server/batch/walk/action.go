@@ -9,8 +9,8 @@ import (
 	"regexp"
 
 	"github.com/muniere/glean/internal/app/server/batch/lumber"
-	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/jsonic"
+	. "github.com/muniere/glean/internal/pkg/stdlib"
 	"github.com/muniere/glean/internal/pkg/urls"
 )
 
@@ -29,8 +29,8 @@ type context struct {
 	uri *url.URL
 }
 
-func (c *context) dict() box.Dict {
-	return box.Dict{
+func (c *context) dict() Dict {
+	return Dict{
 		"uri": c.uri.String(),
 	}
 }

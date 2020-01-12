@@ -6,51 +6,51 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/pathname"
+	. "github.com/muniere/glean/internal/pkg/stdlib"
 )
 
 func Warn(err error) {
-	logrus.WithFields(w(box.Dict{"error": err.Error()})).Warn()
+	logrus.WithFields(w(Dict{"error": err.Error()})).Warn()
 }
 
 func Error(err error) {
-	logrus.WithFields(w(box.Dict{"error": err.Error()})).Error()
+	logrus.WithFields(w(Dict{"error": err.Error()})).Error()
 }
 
-func Start(context box.Dict) {
+func Start(context Dict) {
 	logrus.WithFields(t(context, "", "start")).Info()
 }
 
-func StartStep(step string, context box.Dict) {
+func StartStep(step string, context Dict) {
 	logrus.WithFields(t(context, step, "start")).Info()
 }
 
-func Finish(context box.Dict) {
+func Finish(context Dict) {
 	logrus.WithFields(t(context, "", "finish")).Info()
 }
 
-func FinishStep(step string, context box.Dict) {
+func FinishStep(step string, context Dict) {
 	logrus.WithFields(t(context, step, "finish")).Info()
 }
 
-func Skip(context box.Dict) {
+func Skip(context Dict) {
 	logrus.WithFields(t(context, "", "skip")).Info()
 }
 
-func SkipStep(step string, context box.Dict) {
+func SkipStep(step string, context Dict) {
 	logrus.WithFields(t(context, step, "skip")).Info()
 }
 
-func Result(value interface{}, context box.Dict) {
+func Result(value interface{}, context Dict) {
 	logrus.WithFields(t(context, "", "result")).WithField("result", value).Info()
 }
 
-func ResultStep(step string, value interface{}, context box.Dict) {
+func ResultStep(step string, value interface{}, context Dict) {
 	logrus.WithFields(t(context, step, "result")).WithField("result", value).Info()
 }
 
-func t(context box.Dict, step string, suffix string) logrus.Fields {
+func t(context Dict, step string, suffix string) logrus.Fields {
 	pc, file, line, _ := runtime.Caller(2)
 
 	x := logrus.Fields{
@@ -72,7 +72,7 @@ func t(context box.Dict, step string, suffix string) logrus.Fields {
 	return x
 }
 
-func w(context box.Dict) logrus.Fields {
+func w(context Dict) logrus.Fields {
 	_, file, line, _ := runtime.Caller(2)
 
 	return logrus.Fields{

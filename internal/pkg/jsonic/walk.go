@@ -5,14 +5,16 @@ import (
 	"errors"
 )
 
-type Map map[string]json.RawMessage
-type Array []json.RawMessage
+type (
+	array = []json.RawMessage
+	dict  = map[string]json.RawMessage
+)
 
 var SkipPath = errors.New("skip path")
 
 func Walk(data json.RawMessage, action func(interface{}) error) error {
 	if data[0] == '{' {
-		var m Map
+		var m dict
 		if err := json.Unmarshal(data, &m); err != nil {
 			return err
 		}
@@ -25,7 +27,7 @@ func Walk(data json.RawMessage, action func(interface{}) error) error {
 	}
 
 	if data[0] == '[' {
-		var a Array
+		var a array
 		if err := json.Unmarshal(data, &a); err != nil {
 			return err
 		}
@@ -37,11 +39,11 @@ func Walk(data json.RawMessage, action func(interface{}) error) error {
 		return nil
 	}
 
-	var val interface{}
-	if err := json.Unmarshal(data, &val); err != nil {
+	var v interface{}
+	if err := json.Unmarshal(data, &v); err != nil {
 		return err
 	}
-	if err := action(val); err != nil && err != SkipPath {
+	if err := action(v); err != nil && err != SkipPath {
 		return err
 	}
 	return nil

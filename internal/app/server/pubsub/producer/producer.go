@@ -2,9 +2,9 @@ package producer
 
 import (
 	pubsub "github.com/muniere/glean/internal/app/server/pubsub/axiom"
-	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/lumber"
 	"github.com/muniere/glean/internal/pkg/rpc"
+	. "github.com/muniere/glean/internal/pkg/stdlib"
 	"github.com/muniere/glean/internal/pkg/task"
 )
 
@@ -25,43 +25,43 @@ func NewProducer(queue *task.Queue, config Config) *Producer {
 	}
 
 	x.RegisterRequestHandler(func(request *rpc.Request) error {
-		lumber.Info(box.Dict{"module": "producer", "event": "request", "command": request.Action})
+		lumber.Info(Dict{"module": "producer", "event": "request", "command": request.Action})
 		return nil
 	})
 
 	x.RegisterErrorHandler(rpc.Accept, func(err error) {
 		if rpc.IsClosedConn(err) {
-			lumber.Trace(box.Dict{"module": "producer", "event": "abort", "error": err.Error()})
+			lumber.Trace(Dict{"module": "producer", "event": "abort", "error": err.Error()})
 			return
 		}
 
-		lumber.Error(box.Dict{"module": "producer", "event": "error", "error": err.Error()})
+		lumber.Error(Dict{"module": "producer", "event": "error", "error": err.Error()})
 	})
 
 	x.RegisterErrorHandler(rpc.Handle, func(err error) {
 		if rpc.IsTimeout(err) {
-			lumber.Trace(box.Dict{"module": "producer", "event": "poll.timeout"})
+			lumber.Trace(Dict{"module": "producer", "event": "poll.timeout"})
 			return
 		}
 
 		if rpc.IsEOF(err) {
-			lumber.Trace(box.Dict{"module": "producer", "event": "poll.eof"})
+			lumber.Trace(Dict{"module": "producer", "event": "poll.eof"})
 			return
 		}
 
-		lumber.Error(box.Dict{"module": "producer", "event": "error", "error": err.Error()})
+		lumber.Error(Dict{"module": "producer", "event": "error", "error": err.Error()})
 	})
 
 	return x
 }
 
 func (x *Producer) Start() error {
-	lumber.Info(box.Dict{"module": "producer", "event": "start"})
+	lumber.Info(Dict{"module": "producer", "event": "start"})
 	return x.daemon.Start()
 }
 
 func (x *Producer) Stop() error {
-	lumber.Info(box.Dict{"module": "producer", "event": "stop"})
+	lumber.Info(Dict{"module": "producer", "event": "stop"})
 	return x.daemon.Stop()
 }
 

@@ -1,4 +1,4 @@
-package box
+package axiom
 
 type Failure struct {
 	Message string `json:"message"`

@@ -2,10 +2,10 @@ package clutch
 
 import (
 	pubsub "github.com/muniere/glean/internal/app/server/pubsub/axiom"
-	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/jsonic"
 	"github.com/muniere/glean/internal/pkg/lumber"
 	"github.com/muniere/glean/internal/pkg/rpc"
+	. "github.com/muniere/glean/internal/pkg/stdlib"
 )
 
 func NewAction() *pubsub.Action {
@@ -22,12 +22,12 @@ func perform(ctx *pubsub.Context) error {
 
 	job, err := ctx.Queue.Enqueue(rpc.Clutch, payload.URI, payload.Prefix)
 	if err != nil {
-		return ctx.Gateway.Error(box.Failure{
+		return ctx.Gateway.Error(pubsub.Failure{
 			Message: err.Error(),
 		})
 	}
 
-	lumber.Info(box.Dict{"module": "producer", "event": "job::produce", "job": job})
+	lumber.Info(Dict{"module": "producer", "event": "job::produce", "job": job})
 
 	return ctx.Gateway.Success(job)
 }

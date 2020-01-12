@@ -5,39 +5,39 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/pathname"
+	. "github.com/muniere/glean/internal/pkg/stdlib"
 )
 
-func Trace(values box.Dict) {
+func Trace(values Dict) {
 	logrus.WithFields(t(values)).Trace()
 }
 
-func Debug(values box.Dict) {
+func Debug(values Dict) {
 	logrus.WithFields(t(values)).Debug()
 }
 
-func Info(values box.Dict) {
+func Info(values Dict) {
 	logrus.WithFields(t(values)).Info()
 }
 
-func Warn(values box.Dict) {
+func Warn(values Dict) {
 	logrus.WithFields(t(values)).Warn()
 }
 
-func Error(values box.Dict) {
+func Error(values Dict) {
 	logrus.WithFields(t(values)).Error()
 }
 
-func Panic(values box.Dict) {
+func Panic(values Dict) {
 	logrus.WithFields(t(values)).Panic()
 }
 
-func Fatal(values box.Dict) {
+func Fatal(values Dict) {
 	logrus.WithFields(t(values)).Fatal()
 }
 
-func t(values box.Dict) logrus.Fields {
+func t(values Dict) logrus.Fields {
 	x := logrus.Fields{}
 	for k, v := range values {
 		x[k] = v

@@ -3,8 +3,8 @@ package consumer
 import (
 	"time"
 
-	"github.com/muniere/glean/internal/pkg/box"
 	"github.com/muniere/glean/internal/pkg/lumber"
+	. "github.com/muniere/glean/internal/pkg/stdlib"
 	"github.com/muniere/glean/internal/pkg/task"
 )
 
@@ -48,12 +48,12 @@ func (x *Consumer) Spawn(config Config) {
 }
 
 func (x *Consumer) Start() error {
-	lumber.Info(box.Dict{"module": "consumer", "event": "start"})
+	lumber.Info(Dict{"module": "consumer", "event": "start"})
 	return x.guild.Start()
 }
 
 func (x *Consumer) Stop() error {
-	lumber.Info(box.Dict{"module": "consumer", "event": "stop"})
+	lumber.Info(Dict{"module": "consumer", "event": "stop"})
 	return x.guild.Stop()
 }
 
