@@ -1,19 +1,14 @@
 package index
 
 import (
-	"bufio"
 	"errors"
 	"net/http"
 	"net/url"
 	"regexp"
-	"strings"
-
-	"golang.org/x/net/html/charset"
-	"gopkg.in/xmlpath.v2"
 
 	"github.com/muniere/glean/internal/app/server/batch/lumber"
 	"github.com/muniere/glean/internal/pkg/std"
-	"github.com/muniere/glean/internal/pkg/urls"
+	"github.com/muniere/glean/internal/pkg/xml"
 )
 
 //
@@ -27,6 +22,11 @@ type SiteInfo struct {
 	URI   *url.URL
 	Title string
 	Links []*url.URL
+}
+
+type docInfo struct {
+	title string
+	links []*url.URL
 }
 
 type command struct {
@@ -55,19 +55,44 @@ func Perform(uri *url.URL, options Options) (*SiteInfo, error) {
 		return nil, err
 	}
 
-	return scrape(doc, ctx, options)
+	info, err := scrape(doc, ctx, options)
+	if err != nil {
+		return nil, err
+	}
+
+	return bundle(info, ctx, options)
 }
 
 func compose(cmd command, options Options) context {
 	return context{uri: cmd.uri}
 }
 
-func fetch(context context, options Options) (*xmlpath.Node, error) {
-	lumber.Start(context.dict())
+func fetch(ctx context, options Options) (*xml.Node, error) {
+	lumber.Start(ctx.dict())
+	defer lumber.Finish(ctx.dict())
+	return doFetch(ctx.uri)
+}
 
-	defer lumber.Finish(context.dict())
+func scrape(doc *xml.Node, ctx context, options Options) (*docInfo, error) {
+	lumber.Start(ctx.dict())
+	defer lumber.Finish(ctx.dict())
+	return doScrape(doc, options.Grep)
+}
 
-	res, err := http.Get(context.uri.String())
+func bundle(info *docInfo, ctx context, options Options) (*SiteInfo, error) {
+	lumber.Result(len(info.links), ctx.dict())
+	return &SiteInfo{
+		ctx.uri,
+		info.title,
+		info.links,
+	}, nil
+}
+
+//
+// Helper
+//
+func doFetch(uri *url.URL) (*xml.Node, error) {
+	res, err := http.Get(uri.String())
 	if err != nil {
 		return nil, err
 	}
@@ -80,87 +105,25 @@ func fetch(context context, options Options) (*xmlpath.Node, error) {
 		return nil, errors.New(res.Status)
 	}
 
-	r := bufio.NewReader(res.Body)
-	data, err := r.Peek(1024)
-	if err != nil {
-		return nil, err
-	}
-
-	enc, _, ok := charset.DetermineEncoding(data, res.Header.Get("Content-Type"))
-	if ok {
-		return xmlpath.ParseHTML(enc.NewDecoder().Reader(r))
-	} else {
-		return xmlpath.ParseHTML(res.Body)
-	}
+	return xml.Parse(res)
 }
 
-func scrape(doc *xmlpath.Node, context context, options Options) (*SiteInfo, error) {
-	lumber.Start(context.dict())
+func doScrape(doc *xml.Node, grep *regexp.Regexp) (*docInfo, error) {
+	pattern := regexp.MustCompile(".*\\.(jpg|png|gif)")
 
-	defer lumber.Finish(context.dict())
-
-	title := scrapeTitle(doc)
-
-	re := regexp.MustCompile(".*\\.(jpg|png|gif)")
-
-	hrefs, err := scrapeURLs(doc, "//a/@href", re, options.Grep)
-	if err != nil {
-		return nil, err
-	}
-
-	srcs, err := scrapeURLs(doc, "//img/@src", re, options.Grep)
-	if err != nil {
-		return nil, err
-	}
-
-	links := urls.Unique(append(hrefs, srcs...))
-
-	lumber.Result(len(links), context.dict())
-
-	info := SiteInfo{
-		URI:   context.uri,
-		Title: title,
-		Links: links,
-	}
-
-	return &info, nil
-}
-
-func scrapeTitle(doc *xmlpath.Node) string {
-	xpath := xmlpath.MustCompile("//title")
-	iter := xpath.Iter(doc)
-
-	if iter.Next() {
-		return iter.Node().String()
-	} else {
-		return ""
-	}
-}
-
-func scrapeURLs(doc *xmlpath.Node, path string, pattern *regexp.Regexp, grep *regexp.Regexp) ([]*url.URL, error) {
-	var result []*url.URL
-
-	xpath := xmlpath.MustCompile(path)
-	iter := xpath.Iter(doc)
-
-	for iter.Next() {
-		val := iter.Node().String()
-
-		if pattern != nil && !pattern.MatchString(val) {
-			continue
+	title := xml.Title(doc)
+	links := xml.Collect(doc, func(node *xml.Node) bool {
+		if pattern != nil && !pattern.Match(node.Bytes()) {
+			return false
 		}
-		if grep != nil && !grep.MatchString(val) {
-			continue
+		if grep != nil && !grep.Match(node.Bytes()) {
+			return false
 		}
+		return true
+	})
 
-		s := strings.Replace(val, " ", "+", -1)
-		u, err := url.Parse(s)
-		if err != nil {
-			continue
-		}
-
-		result = append(result, u)
-	}
-
-	return result, nil
+	return &docInfo{
+		title: title,
+		links: links,
+	}, nil
 }
