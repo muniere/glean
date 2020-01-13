@@ -1,11 +1,11 @@
 package clutch
 
 import (
-	pubsub "github.com/muniere/glean/internal/app/server/pubsub/axiom"
+	pubsub "github.com/muniere/glean/internal/app/server/pubsub/base"
 	"github.com/muniere/glean/internal/pkg/jsonic"
 	"github.com/muniere/glean/internal/pkg/lumber"
 	"github.com/muniere/glean/internal/pkg/rpc"
-	. "github.com/muniere/glean/internal/pkg/stdlib"
+	"github.com/muniere/glean/internal/pkg/std"
 )
 
 func NewAction() *pubsub.Action {
@@ -27,7 +27,7 @@ func perform(ctx *pubsub.Context) error {
 		})
 	}
 
-	lumber.Info(NewDict(Pair("module", "producer"), Pair("event", "job::produce"), Pair("job", job)))
+	lumber.Info(std.NewDict(std.Pair("module", "producer"), std.Pair("event", "job::produce"), std.Pair("job", job)))
 
 	return ctx.Gateway.Success(job)
 }

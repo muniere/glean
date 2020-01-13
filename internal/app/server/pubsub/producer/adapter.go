@@ -1,7 +1,7 @@
 package producer
 
 import (
-	pubsub "github.com/muniere/glean/internal/app/server/pubsub/axiom"
+	pubsub "github.com/muniere/glean/internal/app/server/pubsub/base"
 	"github.com/muniere/glean/internal/pkg/rpc"
 	"github.com/muniere/glean/internal/pkg/task"
 )

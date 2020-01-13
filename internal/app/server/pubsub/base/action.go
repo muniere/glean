@@ -1,4 +1,4 @@
-package axiom
+package base
 
 import (
 	"github.com/muniere/glean/internal/pkg/rpc"

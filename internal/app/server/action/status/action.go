@@ -1,7 +1,7 @@
 package status
 
 import (
-	pubsub "github.com/muniere/glean/internal/app/server/pubsub/axiom"
+	pubsub "github.com/muniere/glean/internal/app/server/pubsub/base"
 )
 
 func NewAction() *pubsub.Action {

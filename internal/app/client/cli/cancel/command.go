@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	. "github.com/muniere/glean/internal/app/client/cli/axiom"
+	cli "github.com/muniere/glean/internal/app/client/cli/base"
 	"github.com/muniere/glean/internal/pkg/jsonic"
 	"github.com/muniere/glean/internal/pkg/rpc"
 )
@@ -36,11 +36,11 @@ type argSet struct {
 }
 
 type optionSet struct {
-	OptionSet
+	cli.OptionSet
 }
 
 func assemble(cmd *cobra.Command) *cobra.Command {
-	return Assemble(cmd)
+	return cli.Assemble(cmd)
 }
 
 func run(args []string, flags *pflag.FlagSet) error {
@@ -112,7 +112,7 @@ func normalize(args []string) (argSet, error) {
 }
 
 func decode(flags *pflag.FlagSet) (optionSet, error) {
-	base, err := Decode(flags)
+	base, err := cli.Decode(flags)
 	if err != nil {
 		return optionSet{}, err
 	}
@@ -123,7 +123,7 @@ func decode(flags *pflag.FlagSet) (optionSet, error) {
 }
 
 func prepare(ctx context) error {
-	return Prepare(ctx.options.OptionSet)
+	return cli.Prepare(ctx.options.OptionSet)
 }
 
 func output(w io.Writer, res *rpc.Response) error {

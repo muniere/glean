@@ -14,7 +14,7 @@ import (
 	"github.com/muniere/glean/internal/pkg/pathname"
 	"github.com/muniere/glean/internal/pkg/rpc"
 	"github.com/muniere/glean/internal/pkg/signals"
-	. "github.com/muniere/glean/internal/pkg/stdlib"
+	"github.com/muniere/glean/internal/pkg/std"
 	"github.com/muniere/glean/internal/pkg/task"
 )
 
@@ -80,29 +80,29 @@ func run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	lumber.Info(NewDict(Pair("module", "root"), Pair("event", "start"), Pair("pid", os.Getpid())))
+	lumber.Info(std.NewDict(std.Pair("module", "root"), std.Pair("event", "start"), std.Pair("pid", os.Getpid())))
 
 	// build
 	manager := pubsub.NewManager(translate(ctx.options))
 
 	// start
 	if err = manager.Start(); err != nil {
-		lumber.Fatal(NewDict(Pair("module", "root"), Pair("event", "start::error"), Pair("error", err)))
+		lumber.Fatal(std.NewDict(std.Pair("module", "root"), std.Pair("event", "start::error"), std.Pair("error", err)))
 	}
 
 	// wait
 	sigs := []os.Signal{syscall.SIGINT, syscall.SIGTERM}
-	lumber.Info(NewDict(Pair("module", "root"), Pair("event", "signal::wait"), Pair("signals", signals.Join(sigs, ", "))))
+	lumber.Info(std.NewDict(std.Pair("module", "root"), std.Pair("event", "signal::wait"), std.Pair("signals", signals.Join(sigs, ", "))))
 
 	sig := signals.Wait(sigs...)
-	lumber.Info(NewDict(Pair("module", "root"), Pair("event", "signal::recv"), Pair("signal", sig.String())))
+	lumber.Info(std.NewDict(std.Pair("module", "root"), std.Pair("event", "signal::recv"), std.Pair("signal", sig.String())))
 
 	// stop
 	if err := manager.Stop(); err != nil {
-		lumber.Fatal(NewDict(Pair("module", "root"), Pair("event", "stop::error"), Pair("error", err)))
+		lumber.Fatal(std.NewDict(std.Pair("module", "root"), std.Pair("event", "stop::error"), std.Pair("error", err)))
 	}
 
-	lumber.Info(NewDict(Pair("module", "root"), Pair("event", "stop"), Pair("pid", os.Getpid())))
+	lumber.Info(std.NewDict(std.Pair("module", "root"), std.Pair("event", "stop"), std.Pair("pid", os.Getpid())))
 
 	return nil
 }

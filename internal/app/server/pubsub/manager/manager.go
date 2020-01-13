@@ -6,7 +6,7 @@ import (
 	"github.com/muniere/glean/internal/app/server/action/fallback"
 	"github.com/muniere/glean/internal/app/server/action/scrape"
 	"github.com/muniere/glean/internal/app/server/action/status"
-	pubsub "github.com/muniere/glean/internal/app/server/pubsub/axiom"
+	pubsub "github.com/muniere/glean/internal/app/server/pubsub/base"
 	"github.com/muniere/glean/internal/app/server/pubsub/consumer"
 	"github.com/muniere/glean/internal/app/server/pubsub/producer"
 	"github.com/muniere/glean/internal/pkg/rpc"

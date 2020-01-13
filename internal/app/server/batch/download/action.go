@@ -16,7 +16,7 @@ import (
 
 	"github.com/muniere/glean/internal/app/server/batch/lumber"
 	"github.com/muniere/glean/internal/pkg/pathname"
-	. "github.com/muniere/glean/internal/pkg/stdlib"
+	"github.com/muniere/glean/internal/pkg/std"
 	"github.com/muniere/glean/internal/pkg/sys"
 )
 
@@ -53,8 +53,8 @@ type context struct {
 	path string
 }
 
-func (c *context) dict() Dict {
-	dict := NewDict()
+func (c *context) dict() std.Dict {
+	dict := std.NewDict()
 	if c.uri != nil {
 		dict.Put("uri", c.uri.String())
 	}
@@ -97,8 +97,8 @@ func Perform(urls []*url.URL, options Options) error {
 }
 
 func mkdir(options Options) error {
-	ctx := NewDict(
-		Pair("path", options.Prefix),
+	ctx := std.NewDict(
+		std.Pair("path", options.Prefix),
 	)
 
 	if options.DryRun {

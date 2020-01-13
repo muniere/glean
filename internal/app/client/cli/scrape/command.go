@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	. "github.com/muniere/glean/internal/app/client/cli/axiom"
+	cli "github.com/muniere/glean/internal/app/client/cli/base"
 	"github.com/muniere/glean/internal/pkg/jsonic"
 	"github.com/muniere/glean/internal/pkg/rpc"
 )
@@ -36,7 +36,7 @@ type argSet struct {
 }
 
 type optionSet struct {
-	OptionSet
+	cli.OptionSet
 	Prefix string
 }
 
@@ -48,7 +48,7 @@ func assemble(cmd *cobra.Command) *cobra.Command {
 		"Relative path is resolved from base directory of glean server.",
 	}, "\n"))
 
-	return Assemble(cmd)
+	return cli.Assemble(cmd)
 }
 
 func run(args []string, flags *pflag.FlagSet) error {
@@ -57,7 +57,7 @@ func run(args []string, flags *pflag.FlagSet) error {
 		return err
 	}
 
-	if err := Prepare(ctx.options.OptionSet); err != nil {
+	if err := cli.Prepare(ctx.options.OptionSet); err != nil {
 		return err
 	}
 
@@ -120,7 +120,7 @@ func normalize(args []string) (argSet, error) {
 }
 
 func decode(flags *pflag.FlagSet) (optionSet, error) {
-	base, err := Decode(flags)
+	base, err := cli.Decode(flags)
 	if err != nil {
 		return optionSet{}, err
 	}

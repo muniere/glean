@@ -1,4 +1,4 @@
-package stdlib
+package std
 
 type Dict interface {
 	Has(key string) bool

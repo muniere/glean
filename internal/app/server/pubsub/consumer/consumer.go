@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/muniere/glean/internal/pkg/lumber"
-	. "github.com/muniere/glean/internal/pkg/stdlib"
+	"github.com/muniere/glean/internal/pkg/std"
 	"github.com/muniere/glean/internal/pkg/task"
 )
 
@@ -48,12 +48,12 @@ func (x *Consumer) Spawn(config Config) {
 }
 
 func (x *Consumer) Start() error {
-	lumber.Info(NewDict(Pair("module", "consumer"), Pair("event", "start")))
+	lumber.Info(std.NewDict(std.Pair("module", "consumer"), std.Pair("event", "start")))
 	return x.guild.Start()
 }
 
 func (x *Consumer) Stop() error {
-	lumber.Info(NewDict(Pair("module", "consumer"), Pair("event", "stop")))
+	lumber.Info(std.NewDict(std.Pair("module", "consumer"), std.Pair("event", "stop")))
 	return x.guild.Stop()
 }
 

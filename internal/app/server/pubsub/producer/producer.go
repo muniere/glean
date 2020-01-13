@@ -1,10 +1,10 @@
 package producer
 
 import (
-	pubsub "github.com/muniere/glean/internal/app/server/pubsub/axiom"
+	pubsub "github.com/muniere/glean/internal/app/server/pubsub/base"
 	"github.com/muniere/glean/internal/pkg/lumber"
 	"github.com/muniere/glean/internal/pkg/rpc"
-	. "github.com/muniere/glean/internal/pkg/stdlib"
+	"github.com/muniere/glean/internal/pkg/std"
 	"github.com/muniere/glean/internal/pkg/task"
 )
 
@@ -25,43 +25,43 @@ func NewProducer(queue *task.Queue, config Config) *Producer {
 	}
 
 	x.RegisterRequestHandler(func(request *rpc.Request) error {
-		lumber.Info(NewDict(Pair("module", "producer"), Pair("event", "request"), Pair("command", request.Action)))
+		lumber.Info(std.NewDict(std.Pair("module", "producer"), std.Pair("event", "request"), std.Pair("command", request.Action)))
 		return nil
 	})
 
 	x.RegisterErrorHandler(rpc.Accept, func(err error) {
 		if rpc.IsClosedConn(err) {
-			lumber.Trace(NewDict(Pair("module", "producer"), Pair("event", "abort"), Pair("error", err.Error())))
+			lumber.Trace(std.NewDict(std.Pair("module", "producer"), std.Pair("event", "abort"), std.Pair("error", err.Error())))
 			return
 		}
 
-		lumber.Error(NewDict(Pair("module", "producer"), Pair("event", "error"), Pair("error", err.Error())))
+		lumber.Error(std.NewDict(std.Pair("module", "producer"), std.Pair("event", "error"), std.Pair("error", err.Error())))
 	})
 
 	x.RegisterErrorHandler(rpc.Handle, func(err error) {
 		if rpc.IsTimeout(err) {
-			lumber.Trace(NewDict(Pair("module", "producer"), Pair("event", "poll.timeout")))
+			lumber.Trace(std.NewDict(std.Pair("module", "producer"), std.Pair("event", "poll.timeout")))
 			return
 		}
 
 		if rpc.IsEOF(err) {
-			lumber.Trace(NewDict(Pair("module", "producer"), Pair("event", "poll.eof")))
+			lumber.Trace(std.NewDict(std.Pair("module", "producer"), std.Pair("event", "poll.eof")))
 			return
 		}
 
-		lumber.Error(NewDict(Pair("module", "producer"), Pair("event", "error"), Pair("error", err.Error())))
+		lumber.Error(std.NewDict(std.Pair("module", "producer"), std.Pair("event", "error"), std.Pair("error", err.Error())))
 	})
 
 	return x
 }
 
 func (x *Producer) Start() error {
-	lumber.Info(NewDict(Pair("module", "producer"), Pair("event", "start")))
+	lumber.Info(std.NewDict(std.Pair("module", "producer"), std.Pair("event", "start")))
 	return x.daemon.Start()
 }
 
 func (x *Producer) Stop() error {
-	lumber.Info(NewDict(Pair("module", "producer"), Pair("event", "stop")))
+	lumber.Info(std.NewDict(std.Pair("module", "producer"), std.Pair("event", "stop")))
 	return x.daemon.Stop()
 }
 

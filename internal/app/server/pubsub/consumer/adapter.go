@@ -10,7 +10,7 @@ import (
 	"github.com/muniere/glean/internal/pkg/lumber"
 	"github.com/muniere/glean/internal/pkg/pathname"
 	"github.com/muniere/glean/internal/pkg/rpc"
-	. "github.com/muniere/glean/internal/pkg/stdlib"
+	"github.com/muniere/glean/internal/pkg/std"
 	"github.com/muniere/glean/internal/pkg/task"
 )
 
@@ -22,7 +22,7 @@ type actionAdapter struct {
 }
 
 func (x *actionAdapter) Invoke(job task.Job, meta task.Meta) error {
-	lumber.Info(NewDict(Pair("module", "consumer"), Pair("event", "job::consume"), Pair("job", job), Pair("meta", meta)))
+	lumber.Info(std.NewDict(std.Pair("module", "consumer"), std.Pair("event", "job::consume"), std.Pair("job", job), std.Pair("meta", meta)))
 
 	uri, err := url.Parse(job.URI)
 	if err != nil {
@@ -115,5 +115,5 @@ type recoveryAdapter struct {
 }
 
 func (x *recoveryAdapter) Invoke(err error) {
-	lumber.Error(NewDict(Pair("module", "consumer"), Pair("event", "error"), Pair("error", err.Error())))
+	lumber.Error(std.NewDict(std.Pair("module", "consumer"), std.Pair("event", "error"), std.Pair("error", err.Error())))
 }
