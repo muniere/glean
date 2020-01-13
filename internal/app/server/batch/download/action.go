@@ -2,10 +2,6 @@ package download
 
 import (
 	"errors"
-	"image"
-	_ "image/gif"
-	_ "image/jpeg"
-	_ "image/png"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -15,6 +11,7 @@ import (
 	"time"
 
 	"github.com/muniere/glean/internal/app/server/batch/lumber"
+	"github.com/muniere/glean/internal/pkg/images"
 	"github.com/muniere/glean/internal/pkg/path"
 	"github.com/muniere/glean/internal/pkg/std"
 	"github.com/muniere/glean/internal/pkg/sys"
@@ -24,23 +21,18 @@ import (
 // Error
 //
 var skipDownload = errors.New("skip download")
-var dataTooSmall = errors.New("data too small")
-var dataTooLarge = errors.New("data too large")
 
 //
 // Struct
 //
 type Options struct {
 	Prefix      string
+	Scope       images.Scope
+	Interval    time.Duration
 	Concurrency int
-	MinWidth    int
-	MaxWidth    int
-	MinHeight   int
-	MaxHeight   int
 	Blocking    bool
 	Overwrite   bool
 	DryRun      bool
-	Interval    time.Duration
 }
 
 type command struct {
@@ -137,10 +129,10 @@ func launch(group *sync.WaitGroup, channel chan command, options Options) {
 			if err == skipDownload {
 				continue
 			}
-			if err == dataTooSmall {
+			if err == images.TooSmall {
 				continue
 			}
-			if err == dataTooLarge {
+			if err == images.TooLarge {
 				continue
 			}
 
@@ -184,7 +176,7 @@ func run(cmd command, options Options) error {
 	ctx.temp = temp
 
 	if err := postCondition(temp, ctx, options); err != nil {
-		if err == dataTooSmall {
+		if err == images.TooSmall {
 			lumber.SkipStep("persistent", ctx.dict())
 		}
 		return err
@@ -256,38 +248,7 @@ func temp(f *os.File, src io.Reader, ctx context, options Options) error {
 }
 
 func postCondition(path string, ctx context, options Options) error {
-	f, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		_ = f.Close()
-	}()
-
-	img, _, err := image.Decode(f)
-	if err != nil {
-		return err
-	}
-
-	r := img.Bounds()
-	w := r.Dx()
-	h := r.Dy()
-
-	if options.MinWidth > 0 && w < options.MinWidth {
-		return dataTooSmall
-	}
-	if options.MinHeight > 0 && h < options.MinHeight {
-		return dataTooSmall
-	}
-	if options.MaxWidth > 0 && w > options.MaxWidth {
-		return dataTooLarge
-	}
-	if options.MaxHeight > 0 && h > options.MaxHeight {
-		return dataTooLarge
-	}
-
-	return nil
+	return images.TestFile(path, options.Scope)
 }
 
 func persistent(path string, ctx context, options Options) error {

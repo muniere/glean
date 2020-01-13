@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/muniere/glean/internal/app/server/batch"
+	"github.com/muniere/glean/internal/pkg/images"
 	"github.com/muniere/glean/internal/pkg/lumber"
 	"github.com/muniere/glean/internal/pkg/path"
 	"github.com/muniere/glean/internal/pkg/rpc"
@@ -45,7 +46,7 @@ func (x *actionAdapter) scrape(uri *url.URL, prefix string) error {
 		return err
 	}
 
-	p := func() *path.Pathname {
+	pref := func() *path.Pathname {
 		if len(prefix) > 0 && path.IsAbs(prefix) {
 			return path.New(prefix)
 		}
@@ -59,17 +60,25 @@ func (x *actionAdapter) scrape(uri *url.URL, prefix string) error {
 		}
 	}()
 
+	scope := images.Scope{
+		Min: images.Size{
+			Width:  x.config.MinWidth,
+			Height: x.config.MinHeight,
+		},
+		Max: images.Size{
+			Width:  x.config.MaxWidth,
+			Height: x.config.MaxHeight,
+		},
+	}
+
 	opts := batch.DownloadOptions{
-		Prefix:      p.String(),
+		Prefix:      pref.String(),
+		Scope:       scope,
+		Interval:    500 * time.Millisecond,
 		Concurrency: x.config.Concurrency,
-		MinWidth:    x.config.MinWidth,
-		MaxWidth:    x.config.MaxWidth,
-		MinHeight:   x.config.MinHeight,
-		MaxHeight:   x.config.MaxHeight,
 		Blocking:    false,
 		Overwrite:   x.config.Overwrite,
 		DryRun:      x.config.DryRun,
-		Interval:    500 * time.Millisecond,
 	}
 
 	return batch.Download(info.Links, opts)
@@ -81,7 +90,7 @@ func (x *actionAdapter) clutch(uri *url.URL, prefix string) error {
 		return err
 	}
 
-	p := func() *path.Pathname {
+	pref := func() *path.Pathname {
 		if len(prefix) > 0 && path.IsAbs(prefix) {
 			return path.New(prefix)
 		}
@@ -91,17 +100,25 @@ func (x *actionAdapter) clutch(uri *url.URL, prefix string) error {
 		return path.New(x.config.DataDir).Append(url.QueryEscape(uri.String()))
 	}()
 
+	scope := images.Scope{
+		Min: images.Size{
+			Width:  x.config.MinWidth,
+			Height: x.config.MinHeight,
+		},
+		Max: images.Size{
+			Width:  x.config.MaxWidth,
+			Height: x.config.MaxHeight,
+		},
+	}
+
 	opts := batch.DownloadOptions{
-		Prefix:      p.String(),
+		Prefix:      pref.String(),
+		Scope:       scope,
+		Interval:    500 * time.Millisecond,
 		Concurrency: x.config.Concurrency,
-		MinWidth:    x.config.MinWidth,
-		MaxWidth:    x.config.MaxWidth,
-		MinHeight:   x.config.MinHeight,
-		MaxHeight:   x.config.MaxHeight,
 		Blocking:    false,
 		Overwrite:   x.config.Overwrite,
 		DryRun:      x.config.DryRun,
-		Interval:    500 * time.Millisecond,
 	}
 
 	return batch.Download(uris, opts)
