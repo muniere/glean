@@ -1,7 +1,6 @@
 package walk
 
 import (
-	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"net/http"
@@ -11,7 +10,6 @@ import (
 	"github.com/muniere/glean/internal/app/server/batch/lumber"
 	"github.com/muniere/glean/internal/pkg/jsonic"
 	"github.com/muniere/glean/internal/pkg/std"
-	"github.com/muniere/glean/internal/pkg/urls"
 )
 
 //
@@ -47,19 +45,39 @@ func Perform(uri *url.URL, options Options) ([]*url.URL, error) {
 		return nil, err
 	}
 
-	return scrape(data, ctx, options)
+	links, err := scrape(data, ctx, options)
+	if err != nil {
+		return nil, err
+	}
+
+	return bundle(links, ctx, options)
 }
 
 func compose(cmd command, options Options) context {
 	return context{uri: cmd.uri}
 }
 
-func fetch(context context, options Options) (json.RawMessage, error) {
-	lumber.Start(context.dict())
+func fetch(ctx context, options Options) ([]byte, error) {
+	lumber.Start(ctx.dict())
+	defer lumber.Finish(ctx.dict())
+	return doFetch(ctx.uri)
+}
 
-	defer lumber.Finish(context.dict())
+func scrape(data []byte, ctx context, options Options) ([]*url.URL, error) {
+	lumber.Start(ctx.dict())
+	defer lumber.Finish(ctx.dict())
+	return doScrape(data, options.Grep)
+}
 
-	res, err := http.Get(context.uri.String())
+func bundle(links []*url.URL, ctx context, options Options) ([]*url.URL, error) {
+	return links, nil
+}
+
+//
+// Helper
+//
+func doFetch(uri *url.URL) ([]byte, error) {
+	res, err := http.Get(uri.String())
 	if err != nil {
 		return nil, err
 	}
@@ -75,40 +93,22 @@ func fetch(context context, options Options) (json.RawMessage, error) {
 	return ioutil.ReadAll(res.Body)
 }
 
-func scrape(data json.RawMessage, context context, options Options) ([]*url.URL, error) {
-	lumber.Start(context.dict())
+func doScrape(data []byte, grep *regexp.Regexp) ([]*url.URL, error) {
+	pattern := regexp.MustCompile(".*\\.(jpg|png|gif)")
 
-	defer lumber.Finish(context.dict())
-
-	re := regexp.MustCompile(".*\\.(jpg|png|gif)")
-
-	var uris []*url.URL
-
-	err := jsonic.Walk(data, func(val interface{}) error {
-		switch v := val.(type) {
-		case string:
-			if !re.MatchString(v) {
-				return nil
-			}
-
-			u, err := url.Parse(v)
-			if err != nil {
-				return err
-			}
-			if len(u.Scheme) == 0 || len(u.Host) == 0 {
-				return nil
-			}
-
-			uris = append(uris, u)
-			return nil
-
-		default:
-			return nil
+	links, err := jsonic.Collect(data, func(val string) bool {
+		if pattern != nil && !pattern.MatchString(val) {
+			return false
 		}
+		if grep != nil && !grep.MatchString(val) {
+			return false
+		}
+		return true
 	})
+
 	if err != nil {
 		return nil, err
 	}
 
-	return urls.Unique(uris), nil
+	return links, nil
 }
