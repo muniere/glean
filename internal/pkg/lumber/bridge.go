@@ -5,7 +5,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/muniere/glean/internal/pkg/pathname"
+	"github.com/muniere/glean/internal/pkg/path"
 	"github.com/muniere/glean/internal/pkg/std"
 )
 
@@ -53,7 +53,7 @@ func t(values std.Dict) logrus.Fields {
 	_, file, line, _ := runtime.Caller(2)
 
 	if !vf {
-		x["file"] = pathname.MustLeaf(file, 2)
+		x["file"] = path.MustLeaf(file, 2)
 	}
 	if !vl {
 		x["line"] = line

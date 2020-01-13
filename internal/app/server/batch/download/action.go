@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/muniere/glean/internal/app/server/batch/lumber"
-	"github.com/muniere/glean/internal/pkg/pathname"
+	"github.com/muniere/glean/internal/pkg/path"
 	"github.com/muniere/glean/internal/pkg/std"
 	"github.com/muniere/glean/internal/pkg/sys"
 )
@@ -194,7 +194,7 @@ func run(cmd command, options Options) error {
 }
 
 func compose(cmd command, options Options) context {
-	path := pathname.New(cmd.uri.String()).Base()
+	path := path.New(cmd.uri.String()).Base()
 
 	if len(options.Prefix) > 0 {
 		path = path.Prepend(options.Prefix)
@@ -228,7 +228,7 @@ func save(src io.Reader, ctx context, options Options) (string, error) {
 
 	defer lumber.Finish(ctx.dict())
 
-	f, err := ioutil.TempFile("", pathname.Base(ctx.path))
+	f, err := ioutil.TempFile("", path.Base(ctx.path))
 	if err != nil {
 		return "", err
 	}

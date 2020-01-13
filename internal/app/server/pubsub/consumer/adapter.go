@@ -8,7 +8,7 @@ import (
 
 	"github.com/muniere/glean/internal/app/server/batch"
 	"github.com/muniere/glean/internal/pkg/lumber"
-	"github.com/muniere/glean/internal/pkg/pathname"
+	"github.com/muniere/glean/internal/pkg/path"
 	"github.com/muniere/glean/internal/pkg/rpc"
 	"github.com/muniere/glean/internal/pkg/std"
 	"github.com/muniere/glean/internal/pkg/task"
@@ -45,17 +45,17 @@ func (x *actionAdapter) scrape(uri *url.URL, prefix string) error {
 		return err
 	}
 
-	p := func() *pathname.Pathname {
-		if len(prefix) > 0 && pathname.IsAbs(prefix) {
-			return pathname.New(prefix)
+	p := func() *path.Pathname {
+		if len(prefix) > 0 && path.IsAbs(prefix) {
+			return path.New(prefix)
 		}
 		if len(prefix) > 0 {
-			return pathname.New(x.config.DataDir).Append(prefix)
+			return path.New(x.config.DataDir).Append(prefix)
 		}
 		if len(info.Title) > 0 {
-			return pathname.New(x.config.DataDir).Append(info.Title)
+			return path.New(x.config.DataDir).Append(info.Title)
 		} else {
-			return pathname.New(x.config.DataDir).Append(url.QueryEscape(uri.String()))
+			return path.New(x.config.DataDir).Append(url.QueryEscape(uri.String()))
 		}
 	}()
 
@@ -81,14 +81,14 @@ func (x *actionAdapter) clutch(uri *url.URL, prefix string) error {
 		return err
 	}
 
-	p := func() *pathname.Pathname {
-		if len(prefix) > 0 && pathname.IsAbs(prefix) {
-			return pathname.New(prefix)
+	p := func() *path.Pathname {
+		if len(prefix) > 0 && path.IsAbs(prefix) {
+			return path.New(prefix)
 		}
 		if len(prefix) > 0 {
-			return pathname.New(x.config.DataDir).Append(prefix)
+			return path.New(x.config.DataDir).Append(prefix)
 		}
-		return pathname.New(x.config.DataDir).Append(url.QueryEscape(uri.String()))
+		return path.New(x.config.DataDir).Append(url.QueryEscape(uri.String()))
 	}()
 
 	opts := batch.DownloadOptions{

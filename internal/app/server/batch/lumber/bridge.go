@@ -6,7 +6,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/muniere/glean/internal/pkg/pathname"
+	"github.com/muniere/glean/internal/pkg/path"
 	"github.com/muniere/glean/internal/pkg/std"
 )
 
@@ -55,7 +55,7 @@ func t(step string, suffix string, ctx std.Dict) logrus.Fields {
 
 	x := logrus.Fields{
 		"module":  "batch",
-		"file":    pathname.MustLeaf(file, 2),
+		"file":    path.MustLeaf(file, 2),
 		"line":    line,
 		"context": ctx.Values(),
 	}
@@ -77,7 +77,7 @@ func w(ctx std.Dict) logrus.Fields {
 
 	return logrus.Fields{
 		"module":  "batch",
-		"file":    pathname.MustLeaf(file, 2),
+		"file":    path.MustLeaf(file, 2),
 		"line":    line,
 		"context": ctx.Values(),
 	}
